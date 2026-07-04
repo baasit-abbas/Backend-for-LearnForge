@@ -35,7 +35,7 @@ def instructor(request,id):
     if request.method == 'GET':
         if request.user.role not in [User.Role.ADMIN , User.Role.INSTRUCTOR]:
             raise PermissionDenied()
-        if request.user.role == User.Role.INSTRUCTOR and request.user.id != id:
+        if request.user.role == User.Role.INSTRUCTOR and request.user.instructor.id != id:
             raise PermissionDenied()
         serailizer = InstructorSerializer(instructor)
         return Response(serailizer.data)

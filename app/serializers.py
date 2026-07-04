@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User , Student , Instructor
+from .models import User , Student , Instructor , Course , Enrollment , Documents , Video
 from django.db import transaction
 
 class UserSerializer(serializers.ModelSerializer):
@@ -86,6 +86,25 @@ class AddInstructorSerializer(serializers.Serializer):
 
         return instructor
 
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = '__all__'
+    
+class EnrollmentSerialzier(serializers.ModelSerializer):
+    class Meta:
+        model = Enrollment
+        fields = '__all__'
+
+class DocumentSerilizer(serializers.ModelSerializer):
+    class Meta:
+        model = Documents
+        fields = '__all__'
+
+class VideoSerilizer(serializers.ModelSerializer):
+    class Meta:
+        model = Video
+        fields = '__all__'
 
 
 

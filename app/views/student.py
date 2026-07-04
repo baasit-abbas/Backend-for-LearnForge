@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from ..permissions import Has_role
 from ..models import User , Student
-from ..serializers import StudentSerializer , RegisterStudentSerailizer
+from ..serializers import StudentSerializer , RegisterStudentSerailizer , EnrollmentSerialzier
 from rest_framework.exceptions import PermissionDenied
 
 
@@ -50,10 +50,26 @@ def student(request,id):
     elif request.method == 'GET':
         if request.user.role not in [User.Role.STUDENT,User.Role.ADMIN]:
             raise PermissionDenied()
-        if request.user.role == User.Role.STUDENT and request.user.id != id:
+        if request.user.role == User.Role.STUDENT and request.user.student.id != id:
             raise PermissionDenied()
         serializer = StudentSerializer(student)
         return Response(serializer.data)    
+
+@api_view(['PATCH'])
+@permission_classes([Has_role(User.Role.STUDENT)])
+def enroll(request,course_id):
+    std_id = request.user.student.id
+    data = {
+        "student":std_id,
+        "course":course_id
+    }
+    serialzier = EnrollmentSerialzier(data=data)
+    if serialzier.is_valid():
+        serialzier.save()
+        return Response(serialzier.data)
+    return Response(serialzier.errors,status=400)
+
+    
 
     
 
