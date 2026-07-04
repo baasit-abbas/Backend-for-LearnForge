@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view , permission_classes
 from ..models import Instructor , User
-from ..serializers import InstructorSerializer , AddInstructorSerializer
+from ..serializers import InstructorSerializer , AddInstructorSerializer , CourseSerializer
 from ..permissions import Has_role
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -38,7 +38,13 @@ def instructor(request,id):
         if request.user.role == User.Role.INSTRUCTOR and request.user.instructor.id != id:
             raise PermissionDenied()
         serailizer = InstructorSerializer(instructor)
-        return Response(serailizer.data)
+        courses = instructor.courses.all()
+        ser = CourseSerializer(courses,many=True)
+        data = {
+            **serailizer.data,
+            "courses":ser.data
+        }
+        return Response(data)
     if request.method == 'PATCH': 
         if request.user.role != User.Role.ADMIN:
             raise PermissionDenied()

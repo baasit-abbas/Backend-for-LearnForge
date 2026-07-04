@@ -1,21 +1,21 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view , permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
-from ..models import Documents , User , Course
-from ..serializers import DocumentSerilizer
+from rest_framework.response import Response
 from ..permissions import Has_role
+from ..serializers import VideoSerilizer
+from ..models import User , Video , Course
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
-def docs(request):
+def videos(request):
     if request.method == 'GET':
         if request.user.role != User.Role.ADMIN:
             raise PermissionDenied()
-        docs = Documents.objects.all()
-        serailzier = DocumentSerilizer(docs,many=True)
-        return Response(serailzier.data)
+        video = Video.objects.all()
+        serilzier = VideoSerilizer(video,many=True)
+        return Response(serilzier.data)
     elif request.method == 'POST':
         if request.user.role not in [User.Role.ADMIN,User.Role.INSTRUCTOR]:
             raise PermissionDenied()
@@ -25,9 +25,9 @@ def docs(request):
             raise PermissionDenied()
         data = {
             **request.data,
-            "createdBy":course.instructor.id
+            "createdBy":request.user.instructor.id
         }
-        serailzier = DocumentSerilizer(data=data)
+        serailzier = VideoSerilizer(data=data)
         if serailzier.is_valid():
             serailzier.save()
             return Response(serailzier.data)
@@ -35,29 +35,24 @@ def docs(request):
 
 @api_view(['PATCH','DELETE'])
 @permission_classes([Has_role(User.Role.ADMIN,User.Role.INSTRUCTOR)])
-def doc(request,id):
-    doc = get_object_or_404(Documents,id=id)
-    inst_id = doc.createdBy.id
-    if request.user.role == User.Role.INSTRUCTOR and request.user.instructor.id == inst_id:
+def video(request):
+    vid = get_object_or_404(Video,id=id)
+    inst_id = vid.createdBy.id
+    if request.user.role == User.Role.INSTRUCTOR and request.user.instructor.id != inst_id:
         raise PermissionDenied()
     if request.method == 'PATCH':
-        if "title" not in request.data:
-            return Response({"error":"Only title is updateable","status":400})
-        serialzizer = DocumentSerilizer(
-            doc,
-            data = {"title":request.data["title"]},
-            partial=True
-        )
-        if serialzizer.is_valid():
-            serialzizer.save()
-            return Response(serialzizer.data)
-        return Response(serialzizer.errors,status=400)
+        if "title" not in request.data and "thumnailUrl" not in request.data:
+            return Response({"error":"Only title and thumbnailUrl is updateable","status":400})
+        data = {}
+        for key,value in request.data.items():
+            if key in ["title","thumbnailUrl"]:
+                data[key] = value
+        serailzer = VideoSerilizer(vid,data=data,partial=True)
+        if serailzer.is_valid():
+            serailzer.save()
+            return Response(serailzer.data)
+        return Response(serailzer.errors,status=400)
     elif request.method == 'DELETE':
-        doc.delete()
-        return Response({
-            "message":"Document Deleted",
-            "status":200
-        })
-
-
+        vid.delete()
+        return Response({"message":"Video Deleted","status":400})
 

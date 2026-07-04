@@ -40,7 +40,6 @@ class Enrollment(models.Model):
     enrolled_at = models.DateTimeField(auto_now_add=True)
     progress = models.IntegerField(default=0)
     grade = models.IntegerField(default=0)
-    is_enrolled = models.BooleanField(default=False)
 
 class Documents(models.Model):
     title = models.CharField(max_length=15)
@@ -53,7 +52,7 @@ class Documents(models.Model):
 
 class Video(models.Model):
     title = models.CharField(max_length=15)
-    thumnailUrl = models.CharField(max_length=100)
+    thumbnailUrl = models.CharField(max_length=100)
     videoUrl = models.CharField(max_length=100)
 
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="videos")

@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view , permission_classes
 from ..models import Course , User
 from ..permissions import Has_role
-from ..serializers import CourseSerializer
+from ..serializers import CourseSerializer , DocumentSerilizer , VideoSerilizer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -37,7 +37,18 @@ def course(request,id):
             raise PermissionDenied()
     if request.method == 'GET':
         serializer = CourseSerializer(course)
-        return Response(serializer.data)
+        inst = course.instructor.user.username
+        docs = course.docs.all()
+        docSerializer = DocumentSerilizer(docs,many=True)
+        videos = course.videos.all()
+        videoSerialzier = VideoSerilizer(videos,many=True)
+        data = {
+            **serializer.data,
+            "instructor":inst,
+            "docs":docSerializer.data,
+            "videos":videoSerialzier.data
+        }
+        return Response(data)
     elif request.method == 'PATCH':
         serializer = CourseSerializer(
             course,
