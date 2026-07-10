@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from ..permissions import Has_role
 from ..serializers import VideoSerilizer
 from ..models import User , Video , Course
+from django.core.files.storage import default_storage
+from django.conf import settings
+import os
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
@@ -19,13 +22,29 @@ def videos(request):
     elif request.method == 'POST':
         if request.user.role not in [User.Role.ADMIN,User.Role.INSTRUCTOR]:
             raise PermissionDenied()
+        video = request.FILES.get('video')
+        path = default_storage.save(
+            f"upload/video/{video.name}",
+            video
+        )
+        videoUrl = os.path.join(settings.MEDIA_ROOT,path)
+        thumbnail = request.FILES.get('image')
+        thumbnailPath = default_storage.save(
+            f"upload/images/{thumbnail.name}",
+            thumbnail
+        )
+        thumbnailUrl = os.path.join(settings.MEDIA_ROOT,thumbnailPath)
+        title = request.data['title']
         course_id = request.data["course"]
         course = get_object_or_404(Course,id=course_id)
         if request.user.role == User.Role.INSTRUCTOR and request.user.instructor.id != course.instructor.id:
             raise PermissionDenied()
         data = {
-            **request.data,
-            "createdBy":request.user.instructor.id
+            "title":title,
+            "videoUrl":videoUrl,
+            "thumbnailUrl":thumbnailUrl,
+            "course":course_id,
+            "createdBy":course.instructor.id
         }
         serailzier = VideoSerilizer(data=data)
         if serailzier.is_valid():

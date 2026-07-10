@@ -6,6 +6,7 @@ from ..serializers import CourseSerializer , DocumentSerilizer , VideoSerilizer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
+from ..ai.utils.global_utils import createOrGetChroma , delete_course , get_embeddings
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
@@ -30,12 +31,14 @@ def courses(request):
         return Response(serializer.errors,status=400)
 
 @api_view(['GET','PATCH','DELETE'])
-@permission_classes([Has_role(User.Role.ADMIN,User.Role.INSTRUCTOR)])
+@permission_classes([IsAuthenticated])
 def course(request,id):
     course = get_object_or_404(Course,id=id)
     if request.user.role == User.Role.INSTRUCTOR and request.user.instructor.id != course.instructor.id:
             raise PermissionDenied()
     if request.method == 'GET':
+        if request.user.role == User.Role.STUDENT and id not in request.user.student.courses.values_list("id",flat=True):
+            raise PermissionDenied()
         serializer = CourseSerializer(course)
         inst = course.instructor.user.username
         docs = course.docs.all()
@@ -50,6 +53,8 @@ def course(request,id):
         }
         return Response(data)
     elif request.method == 'PATCH':
+        if request.user.role == User.Role.STUDENT:
+            raise PermissionDenied()
         serializer = CourseSerializer(
             course,
             data = request.data,
@@ -60,26 +65,17 @@ def course(request,id):
             return Response(serializer.data)
         return Response(serializer.errors,status=400)
     elif request.method == 'DELETE':
+        if request.user.role == User.Role.STUDENT:
+            raise PermissionDenied()
         course.delete()
+        embeddings = get_embeddings()
+        vector_db = createOrGetChroma(embeddings)
+        delete_course(vector_db,str(id))
         return Response({
             "message":"Course deleted",
             "status":200
         })
 
-
-@api_view(['GET'])
-@permission_classes([Has_role(User.Role.ADMIN,User.Role.STUDENT)])
-def course_of_std(request,course_id,std_id):
-    print(request.user.student.id,std_id)
-    if request.user.student.id != std_id:
-        raise PermissionDenied()
-    course = get_object_or_404(
-        Course,
-        id=course_id,
-        students=std_id
-    )
-    serializer = CourseSerializer(course)
-    return Response(serializer.data)
 
 
 

@@ -2,25 +2,27 @@ from langchain_community.document_loaders import PyPDFLoader,Docx2txtLoader,Unst
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import ChatOpenAI , OpenAIEmbeddings
 from langchain_chroma import Chroma
-from django.conf import settings
+from pathlib import Path
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
 os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
 
+BASE_DIR = Path(__file__).resolve().parents[3]
 
-def read_file(url,ext):
-    if ext == '.pdf':
+def read_file(url):
+    ext = url.split('.')[1]
+    if ext == 'pdf':
         loader = PyPDFLoader(url)
-    elif ext == '.docx':
+    elif ext == 'docx':
         loader = Docx2txtLoader(url)
-    elif ext == '.pptx':
+    elif ext == 'pptx':
         loader = UnstructuredPowerPointLoader(url)
-    elif ext == '.txt':
+    elif ext == 'txt':
         loader = TextLoader(url)
     else:
-        raise ValueError("Unsupported file type")
+        raise ValueError(f"Unsupported file type {ext}")
     return loader.load()
 
 def divide_chunks(docs):
@@ -38,7 +40,7 @@ def createOrGetChroma(embeddings):
     vector_db = Chroma(
     collection_name="learnforge",
     embedding_function=embeddings,
-    persist_directory= settings.BASR_DIR+"/chroma_db"
+    persist_directory= str(BASE_DIR)+"/chroma_db"
     )
     return vector_db
 
@@ -52,6 +54,8 @@ def get_docs(vector_db,question,course_id):
     context = '\n'.join(doc.page_content for doc in docs)
     return context
 
+def delete_course(vector_db,course_id):
+    vector_db.delete(where={course_id:course_id})
 
 
 

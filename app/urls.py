@@ -5,6 +5,7 @@ from .views.instructor import *
 from .views.course import *
 from .views.docs import *
 from .views.video import *
+from .views.quiz import quizes
 urlpatterns = [
     path('getProfile',getProfile),
     path('user',users),
@@ -16,9 +17,9 @@ urlpatterns = [
     path('course',courses),
     path('course/<int:id>',course),
     path('enroll/<int:course_id>',enroll),
-    path('course/<int:course_id>/student/<int:std_id>',course_of_std),
     path('docs',docs),
     path('docs/<int:id>',doc),
     path('videos',videos),
     path('videos/<int:id>',video),
+    path('quiz',quizes)
 ]

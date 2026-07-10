@@ -6,6 +6,10 @@ from rest_framework.exceptions import PermissionDenied
 from ..models import Documents , User , Course
 from ..serializers import DocumentSerilizer
 from ..permissions import Has_role
+from django.core.files.storage import default_storage
+from django.conf import settings
+import os
+from ..ai.utils.global_utils import *
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
@@ -19,17 +23,32 @@ def docs(request):
     elif request.method == 'POST':
         if request.user.role not in [User.Role.ADMIN,User.Role.INSTRUCTOR]:
             raise PermissionDenied()
+        file = request.FILES.get("file")
+        path = default_storage.save(
+            f"upload/docs/{file.name}",
+            file
+        )
+        fileUrl = os.path.join(settings.MEDIA_ROOT,path)
+        fileType = file.name.split('.')[1]
         course_id = request.data["course"]
         course = get_object_or_404(Course,id=course_id)
         if request.user.role == User.Role.INSTRUCTOR and request.user.instructor.id != course.instructor.id:
             raise PermissionDenied()
         data = {
-            **request.data,
+            "title":request.data['title'],
+            "fileUrl":fileUrl,
+            "fileType":fileType,
+            "course":course_id,
             "createdBy":course.instructor.id
         }
         serailzier = DocumentSerilizer(data=data)
         if serailzier.is_valid():
             serailzier.save()
+            docs = read_file(fileUrl)
+            chunks = divide_chunks(docs)
+            embeddings = get_embeddings()
+            vector_db = createOrGetChroma(embeddings)
+            add_docs(vector_db,chunks,course_id)
             return Response(serailzier.data)
         return Response(serailzier.errors,status=400)
 

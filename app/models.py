@@ -33,7 +33,6 @@ class Student(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     courses = models.ManyToManyField(Course,through="Enrollment",related_name="students")
 
-
 class Enrollment(models.Model):
     student = models.ForeignKey(Student,on_delete=models.CASCADE)
     course = models.ForeignKey(Course,on_delete=models.CASCADE)
@@ -58,6 +57,25 @@ class Video(models.Model):
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="videos")
     createdBy = models.ForeignKey(Instructor,on_delete=models.CASCADE,related_name="videos")
     createdAt = models.DateTimeField(auto_now_add=True)
+
+class Quiz(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="quizes")
+    class Type(models.TextChoices):
+        MCQs = 'mcqs',
+        TrueFalse = 'true/false'
+        Short = 'Short Answers'
+    type = models.CharField(max_length=20,choices=Type.choices)
+
+class MCQ(models.Model):
+    quiz = models.ForeignKey(Quiz,on_delete=models.CASCADE,related_name="mcqs")
+    statment = models.CharField(max_length=255)
+    correct = models.CharField(max_length=50)
+    selected = models.CharField(default='')
+
+class Options(models.Model):
+    mcq = models.ForeignKey(MCQ,on_delete=models.CASCADE,related_name="options")
+    statment = models.CharField(max_length=255)
+
 
 
 

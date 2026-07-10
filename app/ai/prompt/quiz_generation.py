@@ -38,7 +38,8 @@ Your task is to generate quizzes **ONLY** from the provided course context. Neve
 If the user requests Multiple Choice Questions (MCQs), return EXACTLY this JSON structure:
 
 {{
-"mcq": [
+"type":"mcqs",                                        
+"mcqs": [
 {{
 "mcq": "Question statement here",
 "options": {{
@@ -66,6 +67,7 @@ Rules:
 If the user requests True/False questions, return EXACTLY this JSON structure:
 
 {{
+"type":"true_false",                                            
 "true_false": [
 {{
 "statement": "Statement here",
@@ -89,7 +91,8 @@ Rules:
 
 If the user requests Short Answer questions, return EXACTLY this JSON structure:
 
-{{
+{{ 
+"type":"short_answers",                                                                                     
 "short_answers": [
 {{
 "statement": "Question here",

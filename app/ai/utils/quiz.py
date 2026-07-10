@@ -1,5 +1,5 @@
-from .global_utils import get_llm
-from prompt.quiz_generation import quiz_prompt
+from app.ai.utils.global_utils import get_llm
+from app.ai.prompt.quiz_generation import quiz_prompt
 import json
 
 def generate_quiz(question,context):
