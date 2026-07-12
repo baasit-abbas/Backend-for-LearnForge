@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from ..permissions import Has_role
-from ..serializers import VideoSerilizer
+from ..serializers.video_serailzier import VideoSerilizer
 from ..models import User , Video , Course
 from django.core.files.storage import default_storage
 from django.conf import settings

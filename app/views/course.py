@@ -2,7 +2,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view , permission_classes
 from ..models import Course , User
 from ..permissions import Has_role
-from ..serializers import CourseSerializer , DocumentSerilizer , VideoSerilizer
+from ..serializers.course_serailzier import CourseSerializer
+from ..serializers.document_serailizer import DocumentSerilizer
+from ..serializers.video_serailzier import VideoSerilizer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response

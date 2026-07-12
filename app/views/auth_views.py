@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from ..permissions import Has_role
 from ..models import User
-from ..serializers import UserSerializer
+from ..serializers.user_serailizer import UserSerializer
 # Create your views here.
 
 @api_view(['GET'])

@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from ..models import Documents , User , Course
-from ..serializers import DocumentSerilizer
+from ..serializers.document_serailizer import DocumentSerilizer
 from ..permissions import Has_role
 from django.core.files.storage import default_storage
 from django.conf import settings

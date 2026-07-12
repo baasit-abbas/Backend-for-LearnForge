@@ -1,7 +1,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view , permission_classes
 from ..models import Instructor , User
-from ..serializers import InstructorSerializer , AddInstructorSerializer , CourseSerializer
+from ..serializers.instructor_serailizer import InstructorSerializer , AddInstructorSerializer
+from ..serializers.course_serailzier import CourseSerializer
 from ..permissions import Has_role
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated

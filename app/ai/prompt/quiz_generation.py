@@ -38,17 +38,18 @@ Your task is to generate quizzes **ONLY** from the provided course context. Neve
 If the user requests Multiple Choice Questions (MCQs), return EXACTLY this JSON structure:
 
 {{
-"type":"mcqs",                                        
+"type":"mcqs",   
+"title":"Title should be of 2 or 3 words",                                                                                     
 "mcqs": [
 {{
-"mcq": "Question statement here",
-"options": {{
-"a": "Option A",
-"b": "Option B",
-"c": "Option C",
-"d": "Option D"
-}},
-"answer": "Correct option text here"
+"statment": "Question statement here",
+"options": [
+   "Option A",
+   "Option B",
+   "Option C",
+   "Option D"
+],
+"correct": "Correct option text here"
 }}
 ]
 }}
@@ -67,15 +68,16 @@ Rules:
 If the user requests True/False questions, return EXACTLY this JSON structure:
 
 {{
-"type":"true_false",                                            
-"true_false": [
+"type":"true/false", 
+"title":"Title should be of 2 or 3 words",                                                                                         
+"true/false": [
 {{
-"statement": "Statement here",
-"correct": true
+"statment": "Statement here",
+"correct": True
 }},
 {{
-"statement": "Statement here",
-"correct": false
+"statment": "Statement here",
+"correct": False
 }}
 ]
 }}
@@ -92,14 +94,15 @@ Rules:
 If the user requests Short Answer questions, return EXACTLY this JSON structure:
 
 {{ 
-"type":"short_answers",                                                                                     
-"short_answers": [
+"type":"Short Answers",
+"title":"Title should be of 2 or 3 words",                                                                                                                               
+"Short Answers": [
 {{
-"statement": "Question here",
+"statment": "Question here",
 "correct": "Correct answer here"
 }},
 {{
-"statement": "Question here",
+"statment": "Question here",
 "correct": "Correct answer here"
 }}
 ]

@@ -19,7 +19,6 @@ class Instructor(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-
 class Course(models.Model):
     title = models.CharField(max_length=25)
     description = models.CharField(max_length=50)
@@ -64,6 +63,7 @@ class Quiz(models.Model):
         MCQs = 'mcqs',
         TrueFalse = 'true/false'
         Short = 'Short Answers'
+    title = models.CharField(max_length=50)
     type = models.CharField(max_length=20,choices=Type.choices)
 
 class MCQ(models.Model):
@@ -75,6 +75,32 @@ class MCQ(models.Model):
 class Options(models.Model):
     mcq = models.ForeignKey(MCQ,on_delete=models.CASCADE,related_name="options")
     statment = models.CharField(max_length=255)
+
+class TrueFalse(models.Model):
+    quiz = models.ForeignKey(Quiz,on_delete=models.CASCADE,related_name="trueFalse")
+    statment = models.CharField(max_length=255)
+    correct = models.BooleanField()
+    selected = models.CharField(default='')
+
+class ShortAnswers(models.Model):
+    quiz = models.ForeignKey(Quiz,on_delete=models.CASCADE,related_name="short")
+    statment = models.CharField(max_length=255)
+    correct = models.CharField(max_length=255)
+    selected = models.CharField(default='')
+
+class AiTutor(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="tutor")
+    title = models.CharField(max_length=50)
+
+class ChatMessages(models.Model):
+    chat = models.ForeignKey(AiTutor,on_delete=models.CASCADE,related_name="chats")
+    class Role(models.TextChoices):
+        AI = "ai"
+        HUMAN = "human"
+    role = models.CharField(max_length=50,choices=Role.choices)
+    message = models.CharField(max_length=1000)
+
+
 
 
 

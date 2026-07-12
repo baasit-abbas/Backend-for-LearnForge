@@ -4,7 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from ..permissions import Has_role
 from ..models import User , Student
-from ..serializers import StudentSerializer , RegisterStudentSerailizer , EnrollmentSerialzier , CourseSerializer
+from ..serializers.student_serializer import StudentSerializer , RegisterStudentSerailizer
+from ..serializers.course_serailzier import CourseSerializer
+from ..serializers.enrollment_serialier import EnrollmentSerialzier
 from rest_framework.exceptions import PermissionDenied
 
 
