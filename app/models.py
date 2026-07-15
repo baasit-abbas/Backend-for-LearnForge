@@ -111,14 +111,11 @@ class FlashCard(models.Model):
     front_text = models.CharField(max_length=2000)
     back_text = models.CharField(max_length=2000)
 
-    createdAt = models.DateTimeField(auto_now_add=True)
-
-class FlashCardReview(models.Model):
-    flashcard = models.ForeignKey(FlashCard,on_delete=models.CASCADE,related_name="review")
-
     correct = models.BooleanField(null=True,blank=True,default=None)
 
+    createdAt = models.DateTimeField(auto_now_add=True)
     reviwedAt = models.DateTimeField(auto_now=True)
+    
 
 
 

@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404 , get_list_or_404
-from ..models import FlashCard , FlashCardReview , User , Course
-from ..serializers.flashcard_serilaizer import FlashCardSerilizer , FlashCardReviewSerializer
+from ..models import FlashCard , User , Course
+from ..serializers.flashcard_serilaizer import FlashCardSerilizer
 from rest_framework.decorators import api_view , permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
@@ -12,16 +12,9 @@ from django.db import transaction
 @permission_classes([IsAuthenticated])
 def flashcards(request):
     if request.method == 'GET':
-        flashcards = get_list_or_404(FlashCard,user=request.user.id)
-        data = []
-        for flashcard in flashcards.all():
-            flashSerializer = FlashCardSerilizer(flashcard)
-            review = FlashCardReviewSerializer(flashcard.review)
-            data.append({
-                **flashSerializer.data,
-                **review.data
-            })
-        return Response(data)
+        flashcard = get_list_or_404(FlashCard,user=request.user.id)
+        serializer = FlashCardSerilizer(flashcard,many=True)
+        return Response(serializer.data)
 
 @api_view(['GET','POST','PATCH'])
 @transaction.atomic
@@ -52,23 +45,14 @@ def flashcard(request,id):
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-            flash_id = serializer.data['id']
-
-            review = FlashCardReviewSerializer(data={'flashcard':flash_id})
-            review.is_valid(raise_exception=True)
-            review.save()
-
-            return_data.append({
-                **serializer.data,
-                "review":review.data
-            })
+            return_data.append(serializer.data)
         return Response(return_data)
     elif request.method == 'PATCH':
         flash_id = request.data['flash_id']
         correct = request.data['correct']
         flash_card = get_object_or_404(FlashCard,id=flash_id)
-        serializer = FlashCardReviewSerializer(
-            flash_card.review,
+        serializer = FlashCardSerilizer(
+            flash_card,
             data={"correct":correct},
             partial=True
         )
