@@ -7,6 +7,8 @@ from .views.docs import *
 from .views.video import *
 from .views.quiz import *
 from .views.tutor import *
+from .views.flashcard import *
+
 urlpatterns = [
     path('getProfile',getProfile),
     path('user',users),
@@ -26,5 +28,7 @@ urlpatterns = [
     path('quiz/<int:id>',quiz),
     path('quiz/<int:quiz_id>/selected/<int:selected_id>',selected),
     path('chat',chats),
-    path('chat/<int:id>',chat)
+    path('chat/<int:id>',chat),
+    path('flashcards',flashcards),
+    path('flashcards/course/<int:id>',flashcard)
 ]

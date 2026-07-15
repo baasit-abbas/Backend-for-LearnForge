@@ -33,6 +33,9 @@ tutor_prompt = ChatPromptTemplate.from_template("""
 
     Course Context:
     {context}
+                                                
+    History of this chat (Last 10 messages):
+     {history}                                                                                     
 
     Also generate title of the question of 2 or 3 words
     and return in this format

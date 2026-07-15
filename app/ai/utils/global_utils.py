@@ -36,7 +36,8 @@ def get_llm():
 def get_embeddings():
     return OpenAIEmbeddings()
 
-def createOrGetChroma(embeddings):
+def createOrGetChroma():
+    embeddings = OpenAIEmbeddings()
     vector_db = Chroma(
     collection_name="learnforge",
     embedding_function=embeddings,

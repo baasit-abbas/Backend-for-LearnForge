@@ -65,6 +65,7 @@ class Quiz(models.Model):
         Short = 'Short Answers'
     title = models.CharField(max_length=50)
     type = models.CharField(max_length=20,choices=Type.choices)
+    createdAt = models.DateTimeField(auto_now_add=True)
 
 class MCQ(models.Model):
     quiz = models.ForeignKey(Quiz,on_delete=models.CASCADE,related_name="mcqs")
@@ -91,6 +92,7 @@ class ShortAnswers(models.Model):
 class AiTutor(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="tutor")
     title = models.CharField(max_length=50)
+    createdAt = models.DateTimeField(auto_now_add=True)
 
 class ChatMessages(models.Model):
     chat = models.ForeignKey(AiTutor,on_delete=models.CASCADE,related_name="chats")
@@ -99,6 +101,26 @@ class ChatMessages(models.Model):
         HUMAN = "human"
     role = models.CharField(max_length=50,choices=Role.choices)
     message = models.CharField(max_length=1000)
+    createdAt = models.DateTimeField(auto_now_add=True)
+
+
+class FlashCard(models.Model):
+    course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="flashcards")
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="flashcards")
+
+    front_text = models.CharField(max_length=2000)
+    back_text = models.CharField(max_length=2000)
+
+    createdAt = models.DateTimeField(auto_now_add=True)
+
+class FlashCardReview(models.Model):
+    flashcard = models.ForeignKey(FlashCard,on_delete=models.CASCADE,related_name="review")
+
+    correct = models.BooleanField(null=True,blank=True,default=None)
+
+    reviwedAt = models.DateTimeField(auto_now=True)
+
+
 
 
 

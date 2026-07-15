@@ -25,10 +25,7 @@ def chats(request):
             course_ids = request.user.instructor.courses.values_list('id',flat=True)
         else:
             course_ids = Course.objects.values_list('id',flat=True)
-        embeddings = get_embeddings()
-        vector_db = createOrGetChroma(embeddings)
-        context = get_docs(vector_db,question,course_ids)
-        response = generate_answer(question,context)
+        response = generate_answer(question,course_ids)
         if "title" not in response or "answer" not in response:
             return Response({"error":"Error while giving answer.Try again."})
         return_data = {}
@@ -93,10 +90,10 @@ def chat(request,id):
             course_ids = request.user.instructor.courses.values_list('id',flat=True)
         else:
             course_ids = Course.objects.values_list('id',flat=True)
-        embeddings = get_embeddings()
-        vector_db = createOrGetChroma(embeddings)
-        context = get_docs(vector_db,question,course_ids)
-        response = generate_answer(question,context)
+        messages = get_chat.chats.all()
+        messages_serializer = ChatMessageSerializer(messages,many=True)
+        last_10_chats = messages_serializer.data[-10:]
+        response = generate_answer(question,course_ids,last_10_chats)
 
         chat_id = get_chat.id
         human_data = {

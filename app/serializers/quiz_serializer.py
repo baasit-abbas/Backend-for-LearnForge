@@ -40,10 +40,7 @@ class GenerateQuiz(serializers.Serializer):
         user_id = validated_data['user_id']
         question = validated_data['question']
         courses = validated_data['courses']
-        embeddings = get_embeddings()
-        vector_db = createOrGetChroma(embeddings)
-        context = get_docs(vector_db,question,courses)
-        res = generate_quiz(question,context)
+        res = generate_quiz(question,courses)
 
         typeMapping = {
             "mcqs":Quiz.Type.MCQs,

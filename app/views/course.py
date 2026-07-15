@@ -5,6 +5,7 @@ from ..permissions import Has_role
 from ..serializers.course_serailzier import CourseSerializer
 from ..serializers.document_serailizer import DocumentSerilizer
 from ..serializers.video_serailzier import VideoSerilizer
+from ..serializers.student_serializer import StudentSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -47,11 +48,14 @@ def course(request,id):
         docSerializer = DocumentSerilizer(docs,many=True)
         videos = course.videos.all()
         videoSerialzier = VideoSerilizer(videos,many=True)
+        students = course.students.all()
+        studentSerailzier = StudentSerializer(students,many=True)
         data = {
             **serializer.data,
             "instructor":inst,
             "docs":docSerializer.data,
-            "videos":videoSerialzier.data
+            "videos":videoSerialzier.data,
+            "students":studentSerailzier.data
         }
         return Response(data)
     elif request.method == 'PATCH':
