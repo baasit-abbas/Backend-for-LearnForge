@@ -3,7 +3,7 @@ from app.ai.utils.global_utils import *
 import random
 import json
 
-def generate_flashcards(number,difficulty,course_id):
+def generate_flashcards(number,accuracy,course_id):
     vector_db = createOrGetChroma()
     docs = vector_db.get(where={"course_id":course_id})
     total_chunks = len(docs['documents'])
@@ -15,8 +15,8 @@ def generate_flashcards(number,difficulty,course_id):
 
     res = flash_model.invoke({
         "number":number,
-        "difficulty":difficulty,
+        "accuracy":accuracy,
         "context":context
     })
-
+    print(res.content)
     return json.loads(res.content)

@@ -47,8 +47,13 @@ def docs(request):
             docs = read_file(fileUrl)
             chunks = divide_chunks(docs)
             embeddings = get_embeddings()
+            metadata = {
+                "course_id":course_id,
+                "topic":course.title,
+                "chapter":request.data['title']
+            }
             vector_db = createOrGetChroma(embeddings)
-            add_docs(vector_db,chunks,course_id)
+            add_docs(vector_db,chunks,metadata)
             return Response(serailzier.data)
         return Response(serailzier.errors,status=400)
 

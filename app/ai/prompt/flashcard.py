@@ -6,8 +6,10 @@ flash_prompt = ChatPromptTemplate.from_template("""
     Question:
     Generate {number} flashcards.
 
-    Difficuly:
-    {difficulty}                                                                                                                                 
+    Accuracy:
+    {accuracy}  
+
+    Adjust difficulty level according to accuracy of this student.                                                                                                                                                                                                                 
                                                 
     Context:
     {context}                                           

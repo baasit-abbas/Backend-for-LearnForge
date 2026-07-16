@@ -45,16 +45,17 @@ def createOrGetChroma():
     )
     return vector_db
 
-def add_docs(vector_db,chunks,course_id):
+def add_docs(vector_db,chunks,metadata):
     for chunk in chunks:
-        chunk.metadata = {"course_id":course_id}
+        chunk.metadata = metadata
     vector_db.add_documents(chunks)
 
 def get_docs(vector_db,question,course_id):
     course_id = list(course_id)
     docs = vector_db.similarity_search(question,k=4,filter={"course_id":{"$in":course_id}})
+    retrieved_id = docs[0].metadata["course_id"]
     context = '\n'.join(doc.page_content for doc in docs)
-    return context
+    return {"retrieved_id":retrieved_id,"context":context}
 
 def delete_course(vector_db,course_id):
     vector_db.delete(where={course_id:course_id})

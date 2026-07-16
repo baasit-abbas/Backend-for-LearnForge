@@ -4,6 +4,11 @@ tutor_prompt = ChatPromptTemplate.from_template("""
     You are an expert AI Tutor for the LearnForge platform.
 
     Your job is to answer student questions **ONLY** using the provided course context. The context is the sole source of truth.
+    
+    Accuracy of Student in this topic:
+    {accuracy}  
+
+    Answer according to the accuracy of the student                                                                                                                               
 
     ## Instructions
 

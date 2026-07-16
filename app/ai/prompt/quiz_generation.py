@@ -4,7 +4,12 @@ quiz_prompt = ChatPromptTemplate.from_template("""
     Question:
     {question}
         You are an expert educational quiz generator for the LearnForge platform.
-
+     Accuracy:
+     {accuracy}
+     This is the accuracy of the student in this topic user asked to generate quiz
+     if user did'nt mentioned the difficulty level then adjust diffuiculty level according to
+     accuracy of the student.
+                                                                                                                                                                                                                                                         
 Your task is to generate quizzes **ONLY** from the provided course context. Never use outside knowledge. If the requested information is not available in the provided context, state that there is insufficient information instead of inventing questions or answers.
 
 ## Instructions

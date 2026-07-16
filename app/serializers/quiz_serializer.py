@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import Quiz , MCQ , Options , TrueFalse , ShortAnswers
+from ..models import Quiz , MCQ , Options , TrueFalse , ShortAnswers , QuizPerformnace
 from django.db import transaction
 from ..ai.utils.global_utils import *
 from ..ai.utils.quiz import generate_quiz
@@ -30,6 +30,11 @@ class ShortAnswersSerilzier(serializers.ModelSerializer):
         model = ShortAnswers
         fields = '__all__'
 
+class QuizPerformanceSerailzier(serializers.ModelSerializer):
+    class Meta:
+        model = QuizPerformnace
+        fields = '__all__'
+
 class GenerateQuiz(serializers.Serializer):
     user_id = serializers.IntegerField()
     question = serializers.CharField()
@@ -40,7 +45,17 @@ class GenerateQuiz(serializers.Serializer):
         user_id = validated_data['user_id']
         question = validated_data['question']
         courses = validated_data['courses']
-        res = generate_quiz(question,courses)
+
+        vector_db =  createOrGetChroma()
+        data = get_docs(vector_db,question,courses)
+        context = data['context']
+        course_id = data['retrieved_id']
+        performace = QuizPerformnace.objects.filter(user=user_id,course=course_id).first()
+        if performace:
+            accuracy = performace.accuracy
+        else:
+            accuracy = 0
+        res = generate_quiz(question,context,accuracy)
 
         typeMapping = {
             "mcqs":Quiz.Type.MCQs,
@@ -60,6 +75,7 @@ class GenerateQuiz(serializers.Serializer):
         quiz_id = quiz.data['id']
         data = []
         if res['type'] == 'mcqs':
+            total = len(res['mcqs'])
             for mcqs in res['mcqs']:
                 one_mcq = {}
                 mcqData = {
@@ -86,6 +102,7 @@ class GenerateQuiz(serializers.Serializer):
                 data.append(one_mcq)
                 
         elif res['type'] == 'true/false':
+            total = len(res['true/false'])
             for trueFalse in res['true/false']:
                 trueFaleData = {
                     "quiz":quiz_id,
@@ -97,6 +114,7 @@ class GenerateQuiz(serializers.Serializer):
                 trueflaseserializer.save()
                 data.append(trueflaseserializer.data)
         elif res['type'] == 'Short Answers':
+            total = len(res['Short Answers'])
             for short in res['Short Answers']:
                 shortData = {
                     "quiz":quiz_id,
@@ -109,5 +127,15 @@ class GenerateQuiz(serializers.Serializer):
                 data.append(shortSerizlizer.data)
         else:
             raise ValueError('I can only generate mcqs , true/false and short answers')
+        if performace:
+            performaceSerailizer = QuizPerformanceSerailzier(performace,
+                                                             data={"total":total},
+                                                             partial=True)
+        else:
+            performaceSerailizer = QuizPerformanceSerailzier(data={"user":user_id,
+                                                                   "course":course_id,
+                                                                   "total":total})
+        performaceSerailizer.is_valid(raise_exception=True)
+        performaceSerailizer.save()
         all_mcqs["data"] = data
-        return all_mcqs
+        return {"course_id":course_id,**all_mcqs}

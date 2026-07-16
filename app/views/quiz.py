@@ -1,10 +1,11 @@
 from django.shortcuts import get_list_or_404 , get_object_or_404
 from rest_framework.decorators import api_view , permission_classes
 from rest_framework.permissions import IsAuthenticated
-from ..models import User , Course , Quiz , MCQ , TrueFalse , ShortAnswers
+from ..models import User , Course , Quiz , MCQ , TrueFalse , ShortAnswers , QuizPerformnace
 from rest_framework.response import Response
-from ..serializers.quiz_serializer import QuizSerailizer , MCQSerailzier , TrueFalseSerailzier , ShortAnswersSerilzier , GenerateQuiz
+from ..serializers.quiz_serializer import QuizSerailizer , MCQSerailzier , TrueFalseSerailzier , ShortAnswersSerilzier , GenerateQuiz , QuizPerformanceSerailzier
 from rest_framework.exceptions import PermissionDenied
+from app.ai.utils.global_utils import get_llm
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
@@ -12,7 +13,7 @@ def quizes(request):
     if request.method == 'GET':
         user_id = request.user.id
         quizes = get_list_or_404(Quiz,user=user_id)
-        serializer = QuizSerailizer(quizes)
+        serializer = QuizSerailizer(quizes,many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
         question = request.data['question']
@@ -86,7 +87,7 @@ def quiz(request,id):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-    elif request.mehtod == 'DELETE':
+    elif request.method == 'DELETE':
         quiz.delete()
         return Response({"message":"Quiz Deleted","status":200})
 
@@ -94,6 +95,7 @@ def quiz(request,id):
 @permission_classes([IsAuthenticated])
 def selected(request,quiz_id,selected_id):
     quiz = get_object_or_404(Quiz,id=quiz_id)
+    course_id = request.data['course_id']
     if request.user.id != quiz.user.id:
         raise PermissionDenied()
     if "selected" not in request.data:
@@ -101,6 +103,10 @@ def selected(request,quiz_id,selected_id):
     selected = request.data['selected']
     if quiz.type == Quiz.Type.MCQs:
         mcq = get_object_or_404(MCQ,id=selected_id)
+        total = 0
+        if mcq.correct == selected:
+            total = 1
+            
         serializer = MCQSerailzier(
             mcq,
             data={"selected":selected},
@@ -108,6 +114,9 @@ def selected(request,quiz_id,selected_id):
         )
     elif quiz.type == Quiz.Type.TrueFalse:
         true_false = get_object_or_404(TrueFalse,id=selected_id)
+        total = 0
+        if true_false.correct == selected:
+            total = 1
         serializer = TrueFalseSerailzier(
             true_false,
             data = {"selected":selected},
@@ -115,6 +124,8 @@ def selected(request,quiz_id,selected_id):
         )
     else:
         short = get_object_or_404(ShortAnswers,id=selected_id)
+        marks = get_llm().invoke(f"You are teacher and the is correct answer of the question {short.correct} and user typed this {selected} question is og 1 mark give him marks from 0 to 1")
+        total = int(marks)
         serializer = ShortAnswersSerilzier(
             short,
             data = {"selected":selected},
@@ -122,6 +133,24 @@ def selected(request,quiz_id,selected_id):
         )
     serializer.is_valid(raise_exception=True)
     serializer.save()
+
+    performace = get_object_or_404(QuizPerformnace,user=request.user.id,course=course_id)
+    attempted = performace.attempted + 1
+    correct = performace.correct + total
+    performaceSrialzier = QuizPerformanceSerailzier(
+        performace,
+        data={
+            "attempted":attempted,
+            "correct":correct,
+            "accuracy":(correct / attempted)*100
+        },
+        partial=True
+    )
+    performaceSrialzier.is_valid(raise_exception=True)
+    performaceSrialzier.save()
+
+
+
     return Response(serializer.data)
         
 

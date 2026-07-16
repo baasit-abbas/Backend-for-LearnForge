@@ -115,6 +115,26 @@ class FlashCard(models.Model):
 
     createdAt = models.DateTimeField(auto_now_add=True)
     reviwedAt = models.DateTimeField(auto_now=True)
+
+class FlashCardReview(models.Model):
+    course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="review")
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="review")
+    
+    total = models.IntegerField(default=0)
+    attempted = models.IntegerField(default=0)
+    correct = models.IntegerField(default=0)
+
+    accuracy = models.FloatField(default=0)
+
+class QuizPerformnace(models.Model):
+    course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="review_quiz")
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="review_quiz")
+    
+    total = models.IntegerField(default=0)
+    attempted = models.IntegerField(default=0)
+    correct = models.IntegerField(default=0)
+
+    accuracy = models.FloatField(default=0)
     
 
 
