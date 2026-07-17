@@ -12,14 +12,13 @@ from django.db import transaction
 @permission_classes([IsAuthenticated])
 def flashcards(request):
     if request.method == 'GET':
-        flashcard = get_list_or_404(FlashCard,user=request.user.id)
-        serializer = FlashCardSerilizer(flashcard,many=True)
         reviews = get_list_or_404(FlashCardReview,user=request.user.id)
         reviewSerailzier = FlashCardReviewSerilzier(reviews,many=True)
-        return Response({
-            "flashcards":serializer.data,
-            "review":reviewSerailzier.data
-        })
+        review_data = []
+        for review in reviewSerailzier.data:
+            course_name = get_object_or_404(Course,id=review['course']).title
+            review_data.append({"course_name":course_name,**review})
+        return Response(review_data)
 
 @api_view(['GET','POST','PATCH'])
 @transaction.atomic
@@ -112,6 +111,7 @@ def flashcard(request,id):
             "flashcards":serializer.data,
             "review":reviewSerializer.data
         })
+
 
 
     

@@ -62,10 +62,13 @@ class GenerateQuiz(serializers.Serializer):
             "true/false":Quiz.Type.TrueFalse,
             "Short Answers":Quiz.Type.Short
         }
+        total = int(res["number"])
         data = {
             'user':user_id,
+            'course':course_id,
             'title':res['title'],
-            'type':typeMapping[res['type']]
+            'type':typeMapping[res['type']],
+            "total":total
             }
         all_mcqs = {}
         quiz = QuizSerailizer(data=data)
@@ -75,7 +78,6 @@ class GenerateQuiz(serializers.Serializer):
         quiz_id = quiz.data['id']
         data = []
         if res['type'] == 'mcqs':
-            total = len(res['mcqs'])
             for mcqs in res['mcqs']:
                 one_mcq = {}
                 mcqData = {
@@ -102,7 +104,6 @@ class GenerateQuiz(serializers.Serializer):
                 data.append(one_mcq)
                 
         elif res['type'] == 'true/false':
-            total = len(res['true/false'])
             for trueFalse in res['true/false']:
                 trueFaleData = {
                     "quiz":quiz_id,
@@ -114,7 +115,6 @@ class GenerateQuiz(serializers.Serializer):
                 trueflaseserializer.save()
                 data.append(trueflaseserializer.data)
         elif res['type'] == 'Short Answers':
-            total = len(res['Short Answers'])
             for short in res['Short Answers']:
                 shortData = {
                     "quiz":quiz_id,
@@ -129,7 +129,7 @@ class GenerateQuiz(serializers.Serializer):
             raise ValueError('I can only generate mcqs , true/false and short answers')
         if performace:
             performaceSerailizer = QuizPerformanceSerailzier(performace,
-                                                             data={"total":total},
+                                                             data={"total":performace.total+total},
                                                              partial=True)
         else:
             performaceSerailizer = QuizPerformanceSerailzier(data={"user":user_id,
@@ -138,4 +138,4 @@ class GenerateQuiz(serializers.Serializer):
         performaceSerailizer.is_valid(raise_exception=True)
         performaceSerailizer.save()
         all_mcqs["data"] = data
-        return {"course_id":course_id,**all_mcqs}
+        return all_mcqs

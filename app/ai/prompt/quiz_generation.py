@@ -3,12 +3,15 @@ from langchain_core.prompts import ChatPromptTemplate
 quiz_prompt = ChatPromptTemplate.from_template("""
     Question:
     {question}
-        You are an expert educational quiz generator for the LearnForge platform.
+    You are an expert educational quiz generator for the LearnForge platform.
+                                               
      Accuracy:
      {accuracy}
      This is the accuracy of the student in this topic user asked to generate quiz
      if user did'nt mentioned the difficulty level then adjust diffuiculty level according to
      accuracy of the student.
+                                               
+                                              
                                                                                                                                                                                                                                                          
 Your task is to generate quizzes **ONLY** from the provided course context. Never use outside knowledge. If the requested information is not available in the provided context, state that there is insufficient information instead of inventing questions or answers.
 
@@ -44,6 +47,7 @@ If the user requests Multiple Choice Questions (MCQs), return EXACTLY this JSON 
 
 {{
 "type":"mcqs",   
+"number":"Just write integer here of how many mcqs generated",                                             
 "title":"Title should be of 2 or 3 words",                                                                                     
 "mcqs": [
 {{
@@ -73,7 +77,8 @@ Rules:
 If the user requests True/False questions, return EXACTLY this JSON structure:
 
 {{
-"type":"true/false", 
+"type":"true/false",
+"number":"Just write integer here of how many true/false generated",                                                                                           
 "title":"Title should be of 2 or 3 words",                                                                                         
 "true/false": [
 {{
@@ -100,6 +105,7 @@ If the user requests Short Answer questions, return EXACTLY this JSON structure:
 
 {{ 
 "type":"Short Answers",
+"number":"Just write integer here of how many short answers generated",                                              
 "title":"Title should be of 2 or 3 words",                                                                                                                               
 "Short Answers": [
 {{

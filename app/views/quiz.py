@@ -72,8 +72,9 @@ def quiz(request,id):
                 data['correct'] = question.correct
                 data['selected'] = question.selected
                 res.append(data)
+        quiz_serilzier = QuizSerailizer(quiz)
         return Response({
-            "type":quiz.type,
+            **quiz_serilzier.data,
             "data":res})
     elif request.method == 'PATCH':
         if "title" not in request.data:
@@ -103,10 +104,11 @@ def selected(request,quiz_id,selected_id):
     selected = request.data['selected']
     if quiz.type == Quiz.Type.MCQs:
         mcq = get_object_or_404(MCQ,id=selected_id)
+        if mcq.selected:
+            return Response({"error":"Cannot select again","status":400})
         total = 0
         if mcq.correct == selected:
             total = 1
-            
         serializer = MCQSerailzier(
             mcq,
             data={"selected":selected},
@@ -114,6 +116,8 @@ def selected(request,quiz_id,selected_id):
         )
     elif quiz.type == Quiz.Type.TrueFalse:
         true_false = get_object_or_404(TrueFalse,id=selected_id)
+        if true_false.selected:
+            return Response({"error":"Cannot select again","status":400})
         total = 0
         if true_false.correct == selected:
             total = 1
@@ -124,8 +128,10 @@ def selected(request,quiz_id,selected_id):
         )
     else:
         short = get_object_or_404(ShortAnswers,id=selected_id)
-        marks = get_llm().invoke(f"You are teacher and the is correct answer of the question {short.correct} and user typed this {selected} question is og 1 mark give him marks from 0 to 1")
-        total = int(marks)
+        if short.selected:
+            return Response({"error":"Cannot select again","status":400})
+        marks = get_llm().invoke(f"You are teacher and the is correct answer of the question {short.correct} and user typed this {selected}. Question is of 1 mark give him marks from 0 to 1 Just return float value")
+        total = float(marks.content)
         serializer = ShortAnswersSerilzier(
             short,
             data = {"selected":selected},
@@ -149,9 +155,16 @@ def selected(request,quiz_id,selected_id):
     performaceSrialzier.is_valid(raise_exception=True)
     performaceSrialzier.save()
 
+    attempted = quiz.attempted + 1 
+    correct = quiz.correct + total
 
+    quiz_serialzier = QuizSerailizer(quiz,
+                                data={"attempted":attempted,"correct":correct},
+                                partial=True)
+    quiz_serialzier.is_valid(raise_exception=True)
+    quiz_serialzier.save()
 
-    return Response(serializer.data)
+    return Response({"quiz":quiz_serialzier.data,"selected":serializer.data})
         
 
 

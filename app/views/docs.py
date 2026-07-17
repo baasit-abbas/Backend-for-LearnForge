@@ -3,13 +3,15 @@ from rest_framework.decorators import api_view , permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
-from ..models import Documents , User , Course
+from ..models import Documents , User , Course , FlashCardReview
 from ..serializers.document_serailizer import DocumentSerilizer
+from ..serializers.flashcard_serilaizer import FlashCardSerilizer , FlashCardReviewSerilzier
 from ..permissions import Has_role
 from django.core.files.storage import default_storage
 from django.conf import settings
 import os
 from ..ai.utils.global_utils import *
+from app.ai.utils.flash import generate_flashcards
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
@@ -42,20 +44,49 @@ def docs(request):
             "createdBy":course.instructor.id
         }
         serailzier = DocumentSerilizer(data=data)
-        if serailzier.is_valid():
-            serailzier.save()
-            docs = read_file(fileUrl)
-            chunks = divide_chunks(docs)
-            embeddings = get_embeddings()
-            metadata = {
+        serailzier.is_valid(raise_exception=True)
+        serailzier.save()
+        docs = read_file(fileUrl)
+        chunks = divide_chunks(docs)
+        embeddings = get_embeddings()
+        metadata = {
                 "course_id":course_id,
                 "topic":course.title,
                 "chapter":request.data['title']
             }
-            vector_db = createOrGetChroma(embeddings)
-            add_docs(vector_db,chunks,metadata)
-            return Response(serailzier.data)
-        return Response(serailzier.errors,status=400)
+        vector_db = createOrGetChroma(embeddings)
+        add_docs(vector_db,chunks,metadata)
+        for i in range(0,len(chunks.page_content),4):
+            review = FlashCardReview.objects.filter(
+                    user= request.user.id,
+                    course = id
+                )[0]
+                
+            flashcard = generate_flashcards(1,chunks.page_content[i:i+4])
+            data = {
+                    "user":request.user.id,
+                    "course":course_id,
+                    "front_text":flashcard['front_text'],
+                    "back_text":flashcard['back_text']
+                }
+            serializer = FlashCardSerilizer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            if review:
+                old_total = review.total
+                reviewSerializer = FlashCardReviewSerilzier(
+                    review,
+                    data={"total":old_total+1},
+                    partial=True)
+            else:
+                reviewSerializer = FlashCardReviewSerilzier(data={
+                    "user":request.user.id,
+                    "course":course_id,
+                    "total":1
+                    })
+            reviewSerializer.is_valid(raise_exception=True)
+            reviewSerializer.save()
+        return Response(serailzier.data)
 
 @api_view(['PATCH','DELETE'])
 @permission_classes([Has_role(User.Role.ADMIN,User.Role.INSTRUCTOR)])

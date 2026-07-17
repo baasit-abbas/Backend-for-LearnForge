@@ -59,12 +59,16 @@ class Video(models.Model):
 
 class Quiz(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="quizes")
+    course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="quizes")
     class Type(models.TextChoices):
         MCQs = 'mcqs',
         TrueFalse = 'true/false'
         Short = 'Short Answers'
     title = models.CharField(max_length=50)
     type = models.CharField(max_length=20,choices=Type.choices)
+    total = models.IntegerField()
+    attempted = models.IntegerField(default=0)
+    correct = models.FloatField(default=0)
     createdAt = models.DateTimeField(auto_now_add=True)
 
 class MCQ(models.Model):
@@ -132,7 +136,7 @@ class QuizPerformnace(models.Model):
     
     total = models.IntegerField(default=0)
     attempted = models.IntegerField(default=0)
-    correct = models.IntegerField(default=0)
+    correct = models.FloatField(default=0)
 
     accuracy = models.FloatField(default=0)
     
