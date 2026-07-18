@@ -3,12 +3,11 @@ from app.ai.utils.global_utils import *
 import random
 import json
 
-def generate_flashcards(number,context):
+def generate_flashcards(context):
     llm = get_llm()
     flash_model = flash_prompt | llm
 
     res = flash_model.invoke({
         "context":context
     })
-    print(res.content)
     return json.loads(res.content)

@@ -40,9 +40,9 @@ class Enrollment(models.Model):
     grade = models.IntegerField(default=0)
 
 class Documents(models.Model):
-    title = models.CharField(max_length=15)
+    title = models.CharField(max_length=50)
     fileType = models.CharField(max_length=10)
-    fileUrl = models.CharField(max_length=100)
+    fileUrl = models.CharField(max_length=200)
 
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="docs")
     createdBy = models.ForeignKey(Instructor,on_delete=models.CASCADE,related_name="docs")
@@ -110,12 +110,9 @@ class ChatMessages(models.Model):
 
 class FlashCard(models.Model):
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="flashcards")
-    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="flashcards")
 
     front_text = models.CharField(max_length=2000)
     back_text = models.CharField(max_length=2000)
-
-    correct = models.BooleanField(null=True,blank=True,default=None)
 
     createdAt = models.DateTimeField(auto_now_add=True)
     reviwedAt = models.DateTimeField(auto_now=True)
@@ -123,12 +120,16 @@ class FlashCard(models.Model):
 class FlashCardReview(models.Model):
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="review")
     user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="review")
+    flashcard = models.ForeignKey(FlashCard,on_delete=models.CASCADE,related_name="review")
     
-    total = models.IntegerField(default=0)
-    attempted = models.IntegerField(default=0)
-    correct = models.IntegerField(default=0)
+    class Quality(models.IntegerChoices):
+        AGAIN = 0
+        HARD = 1
+        GOOD = 2
+        EASY = 3
 
-    accuracy = models.FloatField(default=0)
+    quality = models.IntegerField(choices=Quality.choices)
+
 
 class QuizPerformnace(models.Model):
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="review_quiz")

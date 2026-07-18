@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view , permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from app.ai.utils.flash import generate_flashcards
+from ..permissions import Has_role
 from django.db import transaction
 
 @api_view(['GET'])
@@ -20,97 +20,61 @@ def flashcards(request):
             review_data.append({"course_name":course_name,**review})
         return Response(review_data)
 
-@api_view(['GET','POST','PATCH'])
-@transaction.atomic
-@permission_classes([IsAuthenticated])
+@api_view(['GET'])
+@permission_classes([Has_role(User.Role.ADMIN,User.Role.STUDENT)])
 def flashcard(request,id):
     course = get_object_or_404(Course,id=id)
-    if request.user.role == User.Role.INSTRUCTOR and request.user.instructor.id != course.instructor.id:
-        raise PermissionDenied()
     if request.user.role == User.Role.STUDENT and id not in request.user.student.courses.values_list('id',flat=True):
         raise PermissionDenied()
-    if request.method == 'GET':
-        flashcards = get_list_or_404(FlashCard,user=request.user.id,course=id)
-        serializer = FlashCardSerilizer(flashcards,many=True)
-        review = get_object_or_404(FlashCardReview,user=request.user.id,course=id)
-        reviewSerializer = FlashCardReviewSerilzier(review)
-        return Response({
-            "flashcards":serializer.data,
-            "review":reviewSerializer.data
-        })
-    elif request.method == 'POST':
-        number = request.data['number']
-        review = FlashCardReview.objects.filter(
-            user= request.user.id,
-            course = id
-        )[0]
-        accuracy = review.accuracy if review else 0
-        flashcards = generate_flashcards(number,accuracy,id)
-        all_flashcards = []
-        for flashcard in flashcards['flashcards']:
-            data = {
-                "user":request.user.id,
-                "course":id,
-                "front_text":flashcard['front_text'],
-                "back_text":flashcard['back_text']
-            }
-            serializer = FlashCardSerilizer(data=data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            all_flashcards.append(serializer.data)
-        if review:
-            old_total = review.total
-            new_total = old_total + number
-            reviewSerializer = FlashCardReviewSerilzier(
-                review,
-                data={"total":new_total},
-                partial=True)
-            reviewSerializer.is_valid(raise_exception=True)
-            reviewSerializer.save()
-        else:
-            reviewSerializer = FlashCardReviewSerilzier(data={
-                "user":request.user.id,
-                "course":id,
-                "total":number
-            })
-            reviewSerializer.is_valid(raise_exception=True)
-            reviewSerializer.save()
-        return Response({
-            "flashcards":all_flashcards,
-            "review":reviewSerializer.data
-        })
-    elif request.method == 'PATCH':
-        flash_id = request.data['flash_id']
-        correct = request.data['correct']
-        flash_card = get_object_or_404(FlashCard,id=flash_id)
-        if flash_card.correct is not None:
-            return Response({"error":"This was already attempted","status":400})
-        serializer = FlashCardSerilizer(
-            flash_card,
-            data={"correct":correct},
-            partial=True
-        )
+    flashcards = get_list_or_404(FlashCard,course=id)
+    serializer = FlashCardSerilizer(flashcards,many=True)
+    review = {
+        "total":0,
+        "attempted":0,
+        "marks":0,
+        "accuracy":0
+    }
+    for flashcard in serializer.data:
+        flashcardReview = FlashCardReview.objects.filter(user=request.user.id,course=id,flashcard=flashcard['id']).first()
+        if flashcardReview:
+            review['attempted'] += 1
+            review['marks'] += flashcardReview.quality
+    review['total'] = review['attempted']*3
+    review['accuracy'] = (review['marks'] / review['total']) * 100 if review['total']!=0 else 0
 
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+    return Response({
+        "flashcards":serializer.data,
+        'review':review
+    })
+    
+@api_view(['PATCH'])
+@permission_classes([Has_role(User.Role.STUDENT,User.Role.ADMIN)])
+def review(request,id):
+    flashcard = get_object_or_404(FlashCard,id=id)
+    quality_mapping = {
+        'Again':FlashCardReview.Quality.AGAIN,
+        'Hard':FlashCardReview.Quality.HARD,
+        'Good':FlashCardReview.Quality.GOOD,
+        'Easy':FlashCardReview.Quality.EASY
+    }
+    data = {
+        "user":request.user.id,
+        "course":flashcard.course.id,
+        "flashcard":id,
+        "quality":quality_mapping[request.data['quality']]
+    }
+    serilzier = FlashCardReviewSerilzier(data=data)
+    serilzier.is_valid(raise_exception=True)
+    serilzier.save()
 
-        review = get_object_or_404(FlashCardReview,user=request.user.id,course=id)
-        attempted = review.attempted + 1
-        correct = review.correct + correct
+    return Response(serilzier.data)
 
-        data = {
-            "attempted":attempted,
-            "correct":correct,
-            "accuracy": (correct / attempted) * 100
-        }
+    
 
-        reviewSerializer = FlashCardReviewSerilzier(review,data=data,partial=True)
-        reviewSerializer.is_valid(raise_exception=True)
-        reviewSerializer.save()
-        return Response({
-            "flashcards":serializer.data,
-            "review":reviewSerializer.data
-        })
+
+
+
+
 
 
 

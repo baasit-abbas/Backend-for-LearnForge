@@ -12,9 +12,11 @@ from django.conf import settings
 import os
 from ..ai.utils.global_utils import *
 from app.ai.utils.flash import generate_flashcards
+from django.db import transaction
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
+@transaction.atomic
 def docs(request):
     if request.method == 'GET':
         if request.user.role != User.Role.ADMIN:
@@ -48,21 +50,16 @@ def docs(request):
         serailzier.save()
         docs = read_file(fileUrl)
         chunks = divide_chunks(docs)
-        embeddings = get_embeddings()
         metadata = {
                 "course_id":course_id,
                 "topic":course.title,
                 "chapter":request.data['title']
             }
-        vector_db = createOrGetChroma(embeddings)
+        vector_db = createOrGetChroma()
         add_docs(vector_db,chunks,metadata)
-        for i in range(0,len(chunks.page_content),4):
-            review = FlashCardReview.objects.filter(
-                    user= request.user.id,
-                    course = id
-                )[0]
-                
-            flashcard = generate_flashcards(1,chunks.page_content[i:i+4])
+        for i in range(0,len(chunks),4):
+            context = ''.join(chunk.page_content for chunk in chunks[i:i+4])
+            flashcard = generate_flashcards(context)
             data = {
                     "user":request.user.id,
                     "course":course_id,
@@ -72,20 +69,6 @@ def docs(request):
             serializer = FlashCardSerilizer(data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            if review:
-                old_total = review.total
-                reviewSerializer = FlashCardReviewSerilzier(
-                    review,
-                    data={"total":old_total+1},
-                    partial=True)
-            else:
-                reviewSerializer = FlashCardReviewSerilzier(data={
-                    "user":request.user.id,
-                    "course":course_id,
-                    "total":1
-                    })
-            reviewSerializer.is_valid(raise_exception=True)
-            reviewSerializer.save()
         return Response(serailzier.data)
 
 @api_view(['PATCH','DELETE'])
@@ -108,6 +91,8 @@ def doc(request,id):
             return Response(serialzizer.data)
         return Response(serialzizer.errors,status=400)
     elif request.method == 'DELETE':
+        if os.path.exists(doc.fileUrl):
+            os.remove(doc.fileUrl)
         doc.delete()
         return Response({
             "message":"Document Deleted",
