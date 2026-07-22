@@ -2,7 +2,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 flash_prompt = ChatPromptTemplate.from_template("""
     You are an expert in generating flashcards you will be provided number and context generate
-    best flashcard according to  difficulty level. Return only one dictionary                                                                                                                                                                                                                                                                                     
+    best flashcard in English. Return only one dictionary                                                                                                                                                                                                                                                                                   
                                                 
     Context:
     {context}                                           

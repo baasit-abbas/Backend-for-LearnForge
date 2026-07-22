@@ -3,9 +3,9 @@ from rest_framework.decorators import api_view , permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
-from ..models import Documents , User , Course , FlashCardReview
+from ..models import Documents , User , Course
 from ..serializers.document_serailizer import DocumentSerilizer
-from ..serializers.flashcard_serilaizer import FlashCardSerilizer , FlashCardReviewSerilzier
+from ..serializers.flashcard_serilaizer import FlashCardSerilizer
 from ..permissions import Has_role
 from django.core.files.storage import default_storage
 from django.conf import settings
@@ -61,7 +61,6 @@ def docs(request):
             context = ''.join(chunk.page_content for chunk in chunks[i:i+4])
             flashcard = generate_flashcards(context)
             data = {
-                    "user":request.user.id,
                     "course":course_id,
                     "front_text":flashcard['front_text'],
                     "back_text":flashcard['back_text']
@@ -91,8 +90,6 @@ def doc(request,id):
             return Response(serialzizer.data)
         return Response(serialzizer.errors,status=400)
     elif request.method == 'DELETE':
-        if os.path.exists(doc.fileUrl):
-            os.remove(doc.fileUrl)
         doc.delete()
         return Response({
             "message":"Document Deleted",

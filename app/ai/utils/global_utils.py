@@ -1,8 +1,10 @@
 from langchain_community.document_loaders import PyPDFLoader,Docx2txtLoader,UnstructuredPowerPointLoader,TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import ChatOpenAI , OpenAIEmbeddings
+from langchain_core.documents import Document
 from langchain_chroma import Chroma
 from pathlib import Path
+import whisper
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -25,6 +27,12 @@ def read_file(url):
         raise ValueError(f"Unsupported file type {ext}")
     return loader.load()
 
+def read_video(url):
+    model = whisper.load_model('base')
+    transcript = model.transcribe(url)
+    doc = Document(page_content=transcript["text"])
+    return doc
+
 def divide_chunks(docs):
     splitter = RecursiveCharacterTextSplitter(chunk_size=800,chunk_overlap=50)
     chunks = splitter.split_documents(docs)
@@ -46,6 +54,8 @@ def createOrGetChroma():
     return vector_db
 
 def add_docs(vector_db,chunks,metadata):
+    if not chunks:
+        return
     for chunk in chunks:
         chunk.metadata = metadata
     vector_db.add_documents(chunks)

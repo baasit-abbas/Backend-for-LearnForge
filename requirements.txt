@@ -12,3 +12,5 @@ pypdf
 python-docx
 python-pptx
 accelerate
+unstructured
+openai-whisper

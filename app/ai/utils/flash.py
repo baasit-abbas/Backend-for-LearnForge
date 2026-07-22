@@ -1,6 +1,5 @@
 from app.ai.prompt.flashcard import flash_prompt
 from app.ai.utils.global_utils import *
-import random
 import json
 
 def generate_flashcards(context):

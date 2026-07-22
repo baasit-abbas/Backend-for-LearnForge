@@ -5,7 +5,10 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from ..permissions import Has_role
 from ..serializers.video_serailzier import VideoSerilizer
+from ..serializers.flashcard_serilaizer import *
 from ..models import User , Video , Course
+from ..ai.utils.global_utils import *
+from ..ai.utils.flash import generate_flashcards
 from django.core.files.storage import default_storage
 from django.conf import settings
 import os
@@ -47,14 +50,33 @@ def videos(request):
             "createdBy":course.instructor.id
         }
         serailzier = VideoSerilizer(data=data)
-        if serailzier.is_valid():
-            serailzier.save()
-            return Response(serailzier.data)
-        return Response(serailzier.errors,status=400)
+        serailzier.is_valid(raise_exception=True)
+        serailzier.save()
+        doc = read_video(videoUrl)
+        chunks = divide_chunks([doc])
+        vector_db = createOrGetChroma()
+        metadata = {
+                "topic":course.title,
+                "chaper":title,
+                "course_id":course_id
+        }
+        add_docs(vector_db,chunks,metadata)
+        for i in range(0,len(chunks),4):
+            context = ''.join(chunk.page_content for chunk in chunks[i:i+4])
+            flashcard = generate_flashcards(context)
+            data = {
+                    "course":course_id,
+                    "front_text":flashcard['front_text'],
+                    "back_text":flashcard['back_text']
+                    }
+            serializer = FlashCardSerilizer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+        return Response(serailzier.data)
 
 @api_view(['PATCH','DELETE'])
 @permission_classes([Has_role(User.Role.ADMIN,User.Role.INSTRUCTOR)])
-def video(request):
+def video(request,id):
     vid = get_object_or_404(Video,id=id)
     inst_id = vid.createdBy.id
     if request.user.role == User.Role.INSTRUCTOR and request.user.instructor.id != inst_id:
