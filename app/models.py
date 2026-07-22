@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser , User
+from datetime import date
 
 # Create your models here.
 
@@ -115,11 +116,10 @@ class FlashCard(models.Model):
     back_text = models.CharField(max_length=2000)
 
     createdAt = models.DateTimeField(auto_now_add=True)
-    reviwedAt = models.DateTimeField(auto_now=True)
 
 class FlashCardReview(models.Model):
-    course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="review")
-    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="review")
+    course = models.ForeignKey(Course,on_delete=models.CASCADE)
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
     flashcard = models.ForeignKey(FlashCard,on_delete=models.CASCADE,related_name="review")
     
     class Quality(models.IntegerChoices):
@@ -128,8 +128,22 @@ class FlashCardReview(models.Model):
         GOOD = 2
         EASY = 3
 
-    quality = models.IntegerField(choices=Quality.choices)
+    quality = models.IntegerField(choices=Quality.choices,default=0)
+    repitition = models.IntegerField(default=0)
+    interval = models.IntegerField(default=1)
+    ease_factor = models.FloatField(default=2.5)
+    next_review = models.DateField(default=date.today)
+    introduced = models.BooleanField(default=False)
 
+
+class FlashCardReviewCourse(models.Model):
+    course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="review")
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="review")
+
+    attempted = models.IntegerField(default=0)
+    marks = models.IntegerField(default=0)
+    total_marks = models.IntegerField(default=0)
+    accuracy = models.FloatField(default=0.0)
 
 class QuizPerformnace(models.Model):
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="review_quiz")

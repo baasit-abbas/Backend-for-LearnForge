@@ -32,6 +32,6 @@ urlpatterns = [
     path('chat/<int:id>',chat),
     path('flashcards/review',flashcards),
     path('flashcards/course/<int:id>',flashcard),
-    path('flascards/selected/<int:id>',review),
+    path('flashcards/selected/<int:id>',review),
     path('quiz/performace',performace)
 ]
