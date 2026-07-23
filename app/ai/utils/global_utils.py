@@ -61,7 +61,7 @@ def add_docs(vector_db,chunks,metadata):
     vector_db.add_documents(chunks)
 
 def get_docs(vector_db,question,course_id):
-    course_id = list(course_id)
+    course_id = [str(x) for x in course_id]
     docs = vector_db.similarity_search(question,k=4,filter={"course_id":{"$in":course_id}})
     retrieved_id = docs[0].metadata["course_id"]
     context = '\n'.join(doc.page_content for doc in docs)

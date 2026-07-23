@@ -25,7 +25,7 @@ def chats(request):
             course_ids = request.user.instructor.courses.values_list('id',flat=True)
         else:
             course_ids = Course.objects.values_list('id',flat=True)
-        response = generate_answer(question,course_ids,request.user.id)
+        response = generate_answer(question,course_ids)
         if "title" not in response or "answer" not in response:
             return Response({"error":"Error while giving answer.Try again."})
         return_data = {}
@@ -41,6 +41,7 @@ def chats(request):
         return_data.update(ai_srializer.data)
 
         chat_id = ai_srializer.data['id']
+        
         human_data = {
             "chat":chat_id,
             "role":ChatMessages.Role.HUMAN,
@@ -93,7 +94,7 @@ def chat(request,id):
         messages = get_chat.chats.all()
         messages_serializer = ChatMessageSerializer(messages,many=True)
         last_10_chats = messages_serializer.data[-10:]
-        response = generate_answer(question,course_ids,request.user.id,last_10_chats)
+        response = generate_answer(question,course_ids,last_10_chats)
 
         chat_id = get_chat.id
         human_data = {
@@ -132,7 +133,7 @@ def chat(request,id):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-    elif request.data == 'DELETE':
+    elif request.method == 'DELETE':
         get_chat.delete()
         return Response({"message":"Chat deleted","status":200})
 

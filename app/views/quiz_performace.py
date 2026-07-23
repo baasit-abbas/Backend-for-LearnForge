@@ -16,5 +16,5 @@ def performace(request):
     for performace in quizes_serializer.data:
         course = get_object_or_404(Course,id=performace['course'])
         courseserializer = CourseSerializer(course)
-        return_data.append({**courseserializer.data,**performace})
+        return_data.append({"course":courseserializer.data,"review":performace})
     return Response(return_data)

@@ -73,10 +73,9 @@ def course(request,id):
     elif request.method == 'DELETE':
         if request.user.role == User.Role.STUDENT:
             raise PermissionDenied()
-        course.delete()
-        embeddings = get_embeddings()
-        vector_db = createOrGetChroma(embeddings)
+        vector_db = createOrGetChroma()
         delete_course(vector_db,str(id))
+        course.delete()
         return Response({
             "message":"Course deleted",
             "status":200

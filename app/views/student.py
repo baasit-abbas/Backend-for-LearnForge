@@ -26,6 +26,7 @@ def students(request):
             student = serializer.save()
             return Response({
                 "id":student.user.id,
+                "student_id":student.id,
                 "username":student.user.username,
                 "email":student.user.email,
                 "date_of_birth":student.date_of_birth,

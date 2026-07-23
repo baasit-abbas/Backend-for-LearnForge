@@ -5,9 +5,6 @@ tutor_prompt = ChatPromptTemplate.from_template("""
 
     Your job is to answer student questions **ONLY** using the provided course context. The context is the sole source of truth.
     
-    Accuracy of Student in this topic:
-    {accuracy}  
-
     Answer according to the accuracy of the student                                                                                                                               
 
     ## Instructions
@@ -40,7 +37,7 @@ tutor_prompt = ChatPromptTemplate.from_template("""
     {context}
                                                 
     History of this chat (Last 10 messages):
-     {history}                                                                                     
+    {history}                                                                                     
 
     Also generate title of the question of 2 or 3 words
     and return in this format

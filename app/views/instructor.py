@@ -20,6 +20,7 @@ def instructors(request):
         if instructor.is_valid():
             data = instructor.save()
             return Response({"id":data.user.id,
+                "instructor_id":data.id,      
                 "username":data.user.username,
                 "specialization":data.specialization,
                 "experience_years":data.experience_years,
