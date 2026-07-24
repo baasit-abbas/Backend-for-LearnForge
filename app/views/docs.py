@@ -32,7 +32,8 @@ def docs(request):
             f"upload/docs/{file.name}",
             file
         )
-        fileUrl = os.path.join(settings.MEDIA_ROOT,path)
+        fileUrl = path
+        # fileUrl = os.path.join(settings.MEDIA_ROOT,path)
         fileType = file.name.split('.')[1]
         course_id = request.data["course"]
         course = get_object_or_404(Course,id=course_id)
@@ -90,6 +91,8 @@ def doc(request,id):
             return Response(serialzizer.data)
         return Response(serialzizer.errors,status=400)
     elif request.method == 'DELETE':
+        if os.path.exists(doc.fileUrl):
+            os.remove(doc.fileUrl)
         doc.delete()
         return Response({
             "message":"Document Deleted",

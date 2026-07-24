@@ -30,13 +30,15 @@ def videos(request):
             f"upload/video/{video.name}",
             video
         )
-        videoUrl = os.path.join(settings.MEDIA_ROOT,path)
+        videoUrl = path
+        # videoUrl = os.path.join(settings.MEDIA_ROOT,path)
         thumbnail = request.FILES.get('image')
         thumbnailPath = default_storage.save(
             f"upload/images/{thumbnail.name}",
             thumbnail
         )
-        thumbnailUrl = os.path.join(settings.MEDIA_ROOT,thumbnailPath)
+        thumbnailUrl = thumbnailPath
+        # thumbnailUrl = os.path.join(settings.MEDIA_ROOT,thumbnailPath)
         title = request.data['title']
         course_id = request.data["course"]
         course = get_object_or_404(Course,id=course_id)
@@ -94,6 +96,10 @@ def video(request,id):
             return Response(serailzer.data)
         return Response(serailzer.errors,status=400)
     elif request.method == 'DELETE':
+        if os.path.exists(vid.thumbnailUrl):
+            os.remove(vid.thumbnailUrl)
+        if os.path.exists(vid.videoUrl):
+            os.remove(vid.videoUrl)
         vid.delete()
         return Response({"message":"Video Deleted","status":400})
 

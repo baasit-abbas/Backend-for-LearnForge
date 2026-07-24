@@ -37,8 +37,6 @@ class Enrollment(models.Model):
     student = models.ForeignKey(Student,on_delete=models.CASCADE)
     course = models.ForeignKey(Course,on_delete=models.CASCADE)
     enrolled_at = models.DateTimeField(auto_now_add=True)
-    progress = models.IntegerField(default=0)
-    grade = models.IntegerField(default=0)
 
 class Documents(models.Model):
     title = models.CharField(max_length=50)
