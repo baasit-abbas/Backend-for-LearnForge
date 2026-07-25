@@ -22,17 +22,15 @@ def students(request):
         return Response(serializer.data)
     elif request.method == 'POST':
         serializer = RegisterStudentSerailizer(data=request.data)
-        if serializer.is_valid():
-            student = serializer.save()
-            return Response({
+        serializer.is_valid(raise_exception=True)
+        student = serializer.save()
+        return Response({
                 "id":student.user.id,
                 "student_id":student.id,
                 "username":student.user.username,
                 "email":student.user.email,
-                "date_of_birth":student.date_of_birth,
-                "phone":student.phone
-            })
-        return Response(serializer.errors,status=400)
+                "date_of_birth":student.date_of_birth
+        })
 
 @api_view(['PATCH','GET'])
 @permission_classes([IsAuthenticated])

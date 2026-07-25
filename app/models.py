@@ -10,13 +10,13 @@ class User(AbstractUser):
         INSTRUCTOR = 'Instructor'
         STUDENT = 'Student'
 
+    email = models.EmailField(unique=True)
     role = models.CharField(max_length=10,choices=Role.choices)
 
 class Instructor(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE,related_name="instructor")
     specialization = models.CharField(max_length=50)
     experience_years = models.IntegerField()
-    phone = models.CharField(max_length=20,unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -28,7 +28,6 @@ class Course(models.Model):
 class Student(models.Model):
     user = models.OneToOneField(User , on_delete=models.CASCADE,related_name="student")
     date_of_birth = models.DateField()
-    phone = models.CharField(max_length=20,unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     courses = models.ManyToManyField(Course,through="Enrollment",related_name="students")

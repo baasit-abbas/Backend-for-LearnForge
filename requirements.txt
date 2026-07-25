@@ -14,3 +14,4 @@ python-pptx
 accelerate
 unstructured
 openai-whisper
+django-cors-headers

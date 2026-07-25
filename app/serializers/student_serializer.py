@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from ..models import User,Student
+from .user_serailizer import UserSerializer
 from django.db import transaction
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -14,21 +15,25 @@ class RegisterStudentSerailizer(serializers.Serializer):
     password = serializers.CharField()
 
     date_of_birth = serializers.DateField()
-    phone = serializers.CharField()
+
 
     @transaction.atomic
     def create(self,validated_data):
-        user = User.objects.create_user(
-            username=validated_data["username"],
-            email=validated_data["email"],
-            password=validated_data["password"],
-            role = User.Role.STUDENT
-        )
+        useSerizlier = UserSerializer(data={
+            "username":validated_data["username"],
+            "email":validated_data["email"],
+            "password":validated_data["password"],
+            "role":User.Role.STUDENT
+        })
+        useSerizlier.is_valid(raise_exception=True)
+        user = useSerizlier.save()
 
-        student = Student.objects.create(
-            user=user,
-            date_of_birth=validated_data["date_of_birth"],
-            phone=validated_data["phone"]
-        )
+        stdSerilzier = StudentSerializer(data={
+            "user":user.id,
+            "date_of_birth":validated_data["date_of_birth"]
+        })
+
+        stdSerilzier.is_valid(raise_exception=True)
+        student = stdSerilzier.save()
 
         return student
