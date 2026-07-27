@@ -126,6 +126,13 @@ def review(request,id):
     reviewSerizlier.save()
     return Response(reviewSerizlier.data)
 
+@api_view(['GET'])
+@permission_classes([Has_role(User.Role.ADMIN)])
+def allflash(request):
+    flashcards = FlashCard.objects.all()
+    serialzier = FlashCardSerilizer(flashcards,many=True)
+    return Response(serialzier.data)
+
 
         
 

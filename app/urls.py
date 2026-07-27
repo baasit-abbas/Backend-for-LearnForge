@@ -30,6 +30,7 @@ urlpatterns = [
     path('quiz/<int:quiz_id>/selected/<int:selected_id>',selected),
     path('chat',chats),
     path('chat/<int:id>',chat),
+    path('flashcards',allflash),
     path('flashcards/review',flashcards),
     path('flashcards/course/<int:id>',flashcard),
     path('flashcards/selected/<int:id>',review),
