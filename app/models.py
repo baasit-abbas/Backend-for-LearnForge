@@ -24,6 +24,7 @@ class Course(models.Model):
     title = models.CharField(max_length=25)
     description = models.CharField(max_length=50)
     instructor = models.ForeignKey(Instructor,on_delete=models.CASCADE,related_name="courses")
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class Student(models.Model):
     user = models.OneToOneField(User , on_delete=models.CASCADE,related_name="student")
@@ -36,6 +37,7 @@ class Enrollment(models.Model):
     student = models.ForeignKey(Student,on_delete=models.CASCADE)
     course = models.ForeignKey(Course,on_delete=models.CASCADE)
     enrolled_at = models.DateTimeField(auto_now_add=True)
+    completed = models.IntegerField(default=0)
 
 class Documents(models.Model):
     title = models.CharField(max_length=50)
@@ -46,6 +48,12 @@ class Documents(models.Model):
     createdBy = models.ForeignKey(Instructor,on_delete=models.CASCADE,related_name="docs")
     createdAt = models.DateTimeField(auto_now_add=True)
 
+class DocProgress(models.Model):
+    student = models.ForeignKey(Student,on_delete=models.CASCADE)
+    doc = models.ForeignKey(Documents,on_delete=models.CASCADE)
+    completed = models.BooleanField()
+    completed_at = models.DateTimeField(auto_now=True)
+
 class Video(models.Model):
     title = models.CharField(max_length=15)
     thumbnailUrl = models.CharField(max_length=100)
@@ -54,6 +62,12 @@ class Video(models.Model):
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="videos")
     createdBy = models.ForeignKey(Instructor,on_delete=models.CASCADE,related_name="videos")
     createdAt = models.DateTimeField(auto_now_add=True)
+
+class VideoProgress(models.Model):
+    student = models.ForeignKey(Student,on_delete=models.CASCADE)
+    video = models.ForeignKey(Video,on_delete=models.CASCADE)
+    completed = models.BooleanField()
+    completed_at = models.DateTimeField(auto_now=True)
 
 class Quiz(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="quizes")

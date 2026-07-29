@@ -3,12 +3,12 @@ from rest_framework.decorators import api_view , permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
-from ..models import Documents , User , Course
-from ..serializers.document_serailizer import DocumentSerilizer
+from ..models import Documents , User , Course , Enrollment , DocProgress
+from ..serializers.document_serailizer import DocumentSerilizer , DocumentProgressSerializer
+from ..serializers.enrollment_serialier import EnrollmentSerialzier
 from ..serializers.flashcard_serilaizer import FlashCardSerilizer
 from ..permissions import Has_role
 from django.core.files.storage import default_storage
-from django.conf import settings
 import os
 from ..ai.utils.global_utils import *
 from app.ai.utils.flash import generate_flashcards
@@ -98,6 +98,50 @@ def doc(request,id):
             "message":"Document Deleted",
             "status":200
         })
+
+@api_view(['PATCH'])
+@permission_classes([Has_role(User.Role.STUDENT)])
+@transaction.atomic
+def docProgress(request,id):
+    std_id = request.user.student.id
+    document = get_object_or_404(Documents,id=id)
+    completed = request.data['completed']
+    progress = DocProgress.objects.filter(student=std_id,doc=id).first()
+    if progress and progress.completed == completed:
+        change = 0
+    else:
+        if not progress:
+            change = 1 if completed else 0
+        else:
+            change = 1 if completed else -1
+
+    if progress:
+        serialzier = DocumentProgressSerializer(progress,data={"completed":completed},partial=True)
+    else:      
+        serialzier = DocumentProgressSerializer(
+            data={
+                "student":std_id,
+                "doc":id,
+                'completed':completed
+            }
+        )
+    serialzier.is_valid(raise_exception=True)
+    serialzier.save()
+
+    course = document.course.id
+    print(course,std_id)
+    enrollment = get_object_or_404(Enrollment,student=std_id,course=course)
+    completed = enrollment.completed + change
+    enrollmentSerilizer = EnrollmentSerialzier(
+        enrollment,
+        data = {
+            "completed":completed
+        },
+        partial=True
+    )
+    enrollmentSerilizer.is_valid(raise_exception=True)
+    enrollmentSerilizer.save()
+    return Response(serialzier.data)
 
 
 

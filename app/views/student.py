@@ -3,10 +3,11 @@ from rest_framework.decorators import api_view , permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from ..permissions import Has_role
-from ..models import User , Student
+from ..models import User , Student , Course , Enrollment
 from ..serializers.student_serializer import StudentSerializer , RegisterStudentSerailizer
 from ..serializers.course_serailzier import CourseSerializer
 from ..serializers.enrollment_serialier import EnrollmentSerialzier
+from ..serializers.user_serailizer import UserSerializer
 from rest_framework.exceptions import PermissionDenied
 
 
@@ -18,8 +19,15 @@ def students(request):
         if request.user.role != User.Role.ADMIN:
             raise PermissionDenied()
         students = Student.objects.all()
+        return_data = []
         serializer = StudentSerializer(students,many=True)
-        return Response(serializer.data)
+        for student in serializer.data:
+            user = get_object_or_404(User,id=student["user"])
+            userSerializer = UserSerializer(user)
+            userSerializer.data.pop('id')
+            data = {"user_id":user.id,**userSerializer.data,**student}
+            return_data.append(data)
+        return Response(return_data)
     elif request.method == 'POST':
         serializer = RegisterStudentSerailizer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -56,20 +64,33 @@ def student(request,id):
         serializer = StudentSerializer(student)
         courses = student.courses.all()
         courseSerializer = CourseSerializer(courses,many=True)
+        return_data = []
+
+        for course in courseSerializer.data:
+            enrollment = get_object_or_404(Enrollment,student=id,course=course["id"])
+            courseData = get_object_or_404(Course,id=course["id"])
+            total_docs = courseData.docs.count()
+            total_videos = courseData.videos.count()
+            total = total_docs + total_videos
+            progress = (enrollment.completed / total) * 100 if total != 0 else 0
+            return_data.append({**course,"progress":progress})
+
         data = {
             **serializer.data,
-            "courses":courseSerializer.data
+            "courses":return_data
         }
         return Response(data)    
 
 @api_view(['POST'])
 @permission_classes([Has_role(User.Role.STUDENT)])
 def enroll(request,course_id):
+    course = get_object_or_404(Course,id=course_id)
     std_id = request.user.student.id
     data = {
         "student":std_id,
         "course":course_id
     }
+
     serialzier = EnrollmentSerialzier(data=data)
     if serialzier.is_valid():
         serialzier.save()

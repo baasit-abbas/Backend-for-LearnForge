@@ -23,8 +23,10 @@ urlpatterns = [
     path('enroll/<int:course_id>',enroll),
     path('docs',docs),
     path('docs/<int:id>',doc),
+    path('docs/progress/<int:id>',docProgress),
     path('videos',videos),
     path('videos/<int:id>',video),
+    path('videos/progress/<int:id>',videoProgress),
     path('quiz',quizes),
     path('quiz/<int:id>',quiz),
     path('quiz/<int:quiz_id>/selected/<int:selected_id>',selected),
@@ -34,5 +36,6 @@ urlpatterns = [
     path('flashcards/review',flashcards),
     path('flashcards/course/<int:id>',flashcard),
     path('flashcards/selected/<int:id>',review),
-    path('quiz/performace',performace)
+    path('quiz/performace',performace),
+    path('quiz/average',performances)
 ]

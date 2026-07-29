@@ -4,13 +4,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from ..permissions import Has_role
-from ..serializers.video_serailzier import VideoSerilizer
+from ..serializers.video_serailzier import VideoSerilizer , VideoProgressSerializer
+from ..serializers.enrollment_serialier import EnrollmentSerialzier
 from ..serializers.flashcard_serilaizer import *
-from ..models import User , Video , Course
+from ..models import User , Video , Course , VideoProgress , Enrollment
 from ..ai.utils.global_utils import *
 from ..ai.utils.flash import generate_flashcards
 from django.core.files.storage import default_storage
-from django.conf import settings
+from django.db import transaction
 import os
 
 @api_view(['GET','POST'])
@@ -102,4 +103,50 @@ def video(request,id):
             os.remove(vid.videoUrl)
         vid.delete()
         return Response({"message":"Video Deleted","status":400})
+
+@api_view(['PATCH'])
+@permission_classes([Has_role(User.Role.STUDENT)])
+@transaction.atomic
+def videoProgress(request,id):
+    video = get_object_or_404(Video,id=id)
+    student = request.user.student.id
+    duration = request.data["duration"]
+    progress = VideoProgress.objects.filter(student=student,video=id)
+    if progress and progress.completed:
+        return Response({"message":"Already marked as true"})
+    if duration >= 90:
+        change = True
+    else:
+        change = False
+
+    if progress:
+        serializers = VideoProgressSerializer(progress,data={"completed":change},partial=True)
+    else:
+        serializers = VideoProgressSerializer(data={
+            "student":student,
+            "video":video,
+            "completed":change
+        })
+    serializers.is_valid(raise_exception=True)
+    serializers.save()
+
+    course = video.course.id
+    enrollment = get_object_or_404(Enrollment,student=student,course=course)
+
+    completed = enrollment.completed + change
+
+    enrollmentSerializer = EnrollmentSerialzier(
+        enrollment,
+        data={"completed":completed},
+        partial=True
+    ) 
+    enrollmentSerializer.is_valid(raise_exception=True)
+    enrollmentSerializer.save()
+
+    return Response(serializers.data)
+
+
+    
+    
+    
 

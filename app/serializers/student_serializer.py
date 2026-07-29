@@ -19,14 +19,12 @@ class RegisterStudentSerailizer(serializers.Serializer):
 
     @transaction.atomic
     def create(self,validated_data):
-        useSerizlier = UserSerializer(data={
-            "username":validated_data["username"],
-            "email":validated_data["email"],
-            "password":validated_data["password"],
-            "role":User.Role.STUDENT
-        })
-        useSerizlier.is_valid(raise_exception=True)
-        user = useSerizlier.save()
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
+            role=User.Role.STUDENT
+        )
 
         stdSerilzier = StudentSerializer(data={
             "user":user.id,
