@@ -16,6 +16,7 @@ urlpatterns = [
     path('user/<int:id>',user.as_view()),
     path('student',students),
     path('student/<int:id>',student),
+    path('student/registeration',per_month),
     path('instructor',instructors),
     path('instructor/<int:id>',instructor),
     path('course',courses),

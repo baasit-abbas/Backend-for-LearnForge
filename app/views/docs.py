@@ -128,14 +128,15 @@ def docProgress(request,id):
     serialzier.is_valid(raise_exception=True)
     serialzier.save()
 
-    course = document.course.id
-    print(course,std_id)
-    enrollment = get_object_or_404(Enrollment,student=std_id,course=course)
+    course = document.course
+    total = course.docs.count() + course.videos.count()
+    enrollment = get_object_or_404(Enrollment,student=std_id,course=course.id)
     completed = enrollment.completed + change
     enrollmentSerilizer = EnrollmentSerialzier(
         enrollment,
         data = {
-            "completed":completed
+            "completed":completed,
+            "progress":(completed / total)*100
         },
         partial=True
     )

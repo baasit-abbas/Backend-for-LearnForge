@@ -9,6 +9,8 @@ from ..serializers.course_serailzier import CourseSerializer
 from ..serializers.enrollment_serialier import EnrollmentSerialzier
 from ..serializers.user_serailizer import UserSerializer
 from rest_framework.exceptions import PermissionDenied
+from django.db.models import Count
+from django.db.models.functions import TruncMonth , TruncDate
 
 
 @api_view(['GET','POST'])
@@ -68,12 +70,7 @@ def student(request,id):
 
         for course in courseSerializer.data:
             enrollment = get_object_or_404(Enrollment,student=id,course=course["id"])
-            courseData = get_object_or_404(Course,id=course["id"])
-            total_docs = courseData.docs.count()
-            total_videos = courseData.videos.count()
-            total = total_docs + total_videos
-            progress = (enrollment.completed / total) * 100 if total != 0 else 0
-            return_data.append({**course,"progress":progress})
+            return_data.append({**course,"progress":enrollment.progress})
 
         data = {
             **serializer.data,
@@ -96,6 +93,20 @@ def enroll(request,course_id):
         serialzier.save()
         return Response(serialzier.data)
     return Response(serialzier.errors,status=400)
+
+@api_view(['GET'])
+@permission_classes([Has_role(User.Role.ADMIN)])
+def per_month(request):
+    students = (
+        Student.objects
+        .annotate(month=TruncMonth("created_at"))
+        .values("month")
+        .annotate(count=Count("id"))
+        .order_by("month")
+    )
+    return Response(students)
+
+
 
     
 

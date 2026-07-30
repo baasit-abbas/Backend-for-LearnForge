@@ -1,11 +1,12 @@
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404 , get_list_or_404
 from rest_framework.decorators import api_view , permission_classes
-from ..models import Course , User
+from ..models import Course , User , Enrollment
 from ..permissions import Has_role
 from ..serializers.course_serailzier import CourseSerializer
 from ..serializers.document_serailizer import DocumentSerilizer
 from ..serializers.video_serailzier import VideoSerilizer
 from ..serializers.student_serializer import StudentSerializer
+from ..serializers.enrollment_serialier import EnrollmentSerialzier
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -19,7 +20,16 @@ def courses(request):
             raise PermissionDenied()
         courses = Course.objects.all()
         serializer = CourseSerializer(courses,many=True)
-        return Response(serializer.data)
+        total = 0
+        completed = 0
+        for course in serializer.data:
+            enrolled = get_list_or_404(Enrollment,course=course["id"])
+            enrolled_serilzier = EnrollmentSerialzier(enrolled,many=True)
+            for enroll in enrolled_serilzier.data:
+                completed += 1 if int(enroll["progress"]) == 100 else 0
+                total += 1
+        print(completed,total)
+        return Response({"course":serializer.data,"average":(completed/total)*100})
     elif request.method == 'POST':
         if request.user.role != User.Role.INSTRUCTOR:
             raise PermissionDenied()

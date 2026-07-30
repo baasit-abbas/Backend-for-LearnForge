@@ -130,14 +130,18 @@ def videoProgress(request,id):
     serializers.is_valid(raise_exception=True)
     serializers.save()
 
-    course = video.course.id
-    enrollment = get_object_or_404(Enrollment,student=student,course=course)
+    course = video.course
+    total = course.docs.count() + course.videos.count()
+    enrollment = get_object_or_404(Enrollment,student=student,course=course.id)
 
     completed = enrollment.completed + change
 
     enrollmentSerializer = EnrollmentSerialzier(
         enrollment,
-        data={"completed":completed},
+        data={
+            "completed":completed,
+            "progress":completed / total
+            },
         partial=True
     ) 
     enrollmentSerializer.is_valid(raise_exception=True)
