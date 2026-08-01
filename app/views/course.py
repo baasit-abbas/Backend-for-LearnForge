@@ -28,7 +28,6 @@ def courses(request):
             for enroll in enrolled_serilzier.data:
                 completed += 1 if int(enroll["progress"]) == 100 else 0
                 total += 1
-        print(completed,total)
         return Response({"course":serializer.data,"average":(completed/total)*100})
     elif request.method == 'POST':
         if request.user.role != User.Role.INSTRUCTOR:
