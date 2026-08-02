@@ -20,15 +20,8 @@ def courses(request):
             raise PermissionDenied()
         courses = Course.objects.all()
         serializer = CourseSerializer(courses,many=True)
-        total = 0
-        completed = 0
-        for course in serializer.data:
-            enrolled = get_list_or_404(Enrollment,course=course["id"])
-            enrolled_serilzier = EnrollmentSerialzier(enrolled,many=True)
-            for enroll in enrolled_serilzier.data:
-                completed += 1 if int(enroll["progress"]) == 100 else 0
-                total += 1
-        return Response({"course":serializer.data,"average":(completed/total)*100})
+        
+        return Response(serializer.data)
     elif request.method == 'POST':
         if request.user.role != User.Role.INSTRUCTOR:
             raise PermissionDenied()

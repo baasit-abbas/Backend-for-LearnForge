@@ -12,11 +12,11 @@ from .views.quiz_performace import *
 
 urlpatterns = [
     path('getProfile',getProfile),
+    path('adminData',admin_data),
     path('user',users),
     path('user/<int:id>',user.as_view()),
     path('student',students),
     path('student/<int:id>',student),
-    path('student/registeration',per_month),
     path('instructor',instructors),
     path('instructor/<int:id>',instructor),
     path('course',courses),
@@ -38,5 +38,4 @@ urlpatterns = [
     path('flashcards/course/<int:id>',flashcard),
     path('flashcards/selected/<int:id>',review),
     path('quiz/performace',performace),
-    path('quiz/average',performances)
 ]

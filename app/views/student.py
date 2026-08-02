@@ -9,10 +9,6 @@ from ..serializers.course_serailzier import CourseSerializer
 from ..serializers.enrollment_serialier import EnrollmentSerialzier
 from ..serializers.user_serailizer import UserSerializer
 from rest_framework.exceptions import PermissionDenied
-from django.db.models import Count
-from django.db.models.functions import TruncMonth
-from django.utils import timezone
-
 
 
 @api_view(['GET','POST'])
@@ -31,13 +27,7 @@ def students(request):
             userSerializer.data.pop('id')
             data = {"user_id":user.id,**userSerializer.data,**student}
             return_data.append(data)
-        now = timezone.now()
-        registered_this_month = Student.objects.all().filter(
-            created_at__year=now.year,
-            created_at__month=now.month
-        ).count()
-        average_count = (registered_this_month / Student.objects.all().count()) * 100
-        return Response({"students":return_data,"this_month":registered_this_month,"average_count":average_count})
+        return Response(return_data)
     elif request.method == 'POST':
         serializer = RegisterStudentSerailizer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -101,18 +91,6 @@ def enroll(request,course_id):
         serialzier.save()
         return Response(serialzier.data)
     return Response(serialzier.errors,status=400)
-
-@api_view(['GET'])
-@permission_classes([Has_role(User.Role.ADMIN)])
-def per_month(request):
-    students = (
-        Student.objects
-        .annotate(month=TruncMonth("created_at"))
-        .values("month")
-        .annotate(count=Count("id"))
-        .order_by("month")
-    )
-    return Response(students)
 
 
 

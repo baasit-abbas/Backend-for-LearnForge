@@ -47,7 +47,7 @@ class Documents(models.Model):
 
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="docs")
     createdBy = models.ForeignKey(Instructor,on_delete=models.CASCADE,related_name="docs")
-    createdAt = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class DocProgress(models.Model):
     student = models.ForeignKey(Student,on_delete=models.CASCADE)
@@ -62,7 +62,7 @@ class Video(models.Model):
 
     course = models.ForeignKey(Course,on_delete=models.CASCADE,related_name="videos")
     createdBy = models.ForeignKey(Instructor,on_delete=models.CASCADE,related_name="videos")
-    createdAt = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class VideoProgress(models.Model):
     student = models.ForeignKey(Student,on_delete=models.CASCADE)

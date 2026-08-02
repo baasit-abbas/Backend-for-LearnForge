@@ -20,16 +20,5 @@ def performace(request):
         return_data.append({"course":courseserializer.data,"review":performace})
     return Response(return_data)
 
-@api_view(['GET'])
-@permission_classes([Has_role(User.Role.ADMIN)])
-def performances(request):
-    all_quizes = QuizPerformnace.objects.all()
-    attempted = 0
-    correct = 0
-    serilzier = QuizPerformanceSerailzier(all_quizes,many=True)
-    for perfomance in serilzier.data:
-        attempted += perfomance["attempted"]
-        correct += perfomance["correct"]
-    return Response({"average":(correct/attempted) * 100})
 
 
