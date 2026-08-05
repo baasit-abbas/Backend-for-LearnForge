@@ -64,36 +64,42 @@ def admin_data(request):
                         date_joined__month = timezone.now().month
                         ).count()
     averge_users = (recent_users / total_users) * 100 if total_users != 0 else 0
+    averge_users = round(averge_users,2)
     total_students = Student.objects.all().count()
     recent_students = Student.objects.filter(
                         created_at__year = timezone.now().year,
                         created_at__month = timezone.now().month
                         ).count()
     averge_students = (recent_students / total_students) * 100 if total_students != 0 else 0
+    averge_students = round(averge_students,2)
     total_instructors = Instructor.objects.all().count()
     recent_instructors = Instructor.objects.filter(
                         created_at__year = timezone.now().year,
                         created_at__month = timezone.now().month
                         ).count()
     averge_instrcutors = (recent_instructors / total_instructors) * 100 if total_instructors != 0 else 0
+    averge_instrcutors = round(averge_instrcutors,2)
     total_courses = Course.objects.all().count()
     recent_courses = Course.objects.filter(
                         created_at__year = timezone.now().year,
                         created_at__month = timezone.now().month
                         ).count()
     averge_courses = (recent_courses / total_courses) * 100 if total_courses != 0 else 0
+    averge_courses = round(averge_courses,2)
     total_docs = Documents.objects.all().count()
     recent_docs = Documents.objects.filter(
                         created_at__year = timezone.now().year,
                         created_at__month = timezone.now().month
                         ).count()
     averge_docs = (recent_docs / total_docs) * 100 if total_docs != 0 else 0
+    averge_docs = round(averge_docs,2)
     total_videos = Video.objects.all().count()
     recent_videos = Video.objects.filter(
                         created_at__year = timezone.now().year,
                         created_at__month = timezone.now().month
                         ).count()
     averge_videos = (recent_videos / total_videos) * 100 if total_videos != 0 else 0
+    averge_videos = round(averge_videos,2)
     total_quizes = Quiz.objects.all().count()
     total_flashcards = FlashCard.objects.all().count()
     total_ai_chats = AiTutor.objects.all().count() 
@@ -101,8 +107,9 @@ def admin_data(request):
     total_quiz_socre = QuizPerformnace.objects.aggregate(Sum("correct"))['correct__sum']
     total_attempted  = QuizPerformnace.objects.aggregate(Sum("attempted"))['attempted__sum']
     averge_quiz_socre = (total_quiz_socre / total_attempted) * 100
+    averge_quiz_socre = round(averge_quiz_socre,2)
     averge_course_complition = (Enrollment.objects.all().count() / Enrollment.objects.filter(completed=True).count()) * 100
-
+    averge_course_complition = round(averge_course_complition,2)
     registeration_per_month = (Student.objects
                               .annotate(month=ExtractMonth("created_at"))
                               .values("month")
