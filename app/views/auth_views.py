@@ -104,11 +104,13 @@ def admin_data(request):
     total_flashcards = FlashCard.objects.all().count()
     total_ai_chats = AiTutor.objects.all().count() 
     total_active_users = User.objects.filter(is_active=True).count()
-    total_quiz_socre = QuizPerformnace.objects.aggregate(Sum("correct"))['correct__sum']
-    total_attempted  = QuizPerformnace.objects.aggregate(Sum("attempted"))['attempted__sum']
-    averge_quiz_socre = (total_quiz_socre / total_attempted) * 100
+    total_quiz_socre = QuizPerformnace.objects.aggregate(total=Sum("correct"))['total'] or 0
+    total_attempted  = QuizPerformnace.objects.aggregate(total=Sum("attempted"))['total'] or 0
+    averge_quiz_socre = (total_quiz_socre / total_attempted) * 100 if total_attempted != 0 else 0
     averge_quiz_socre = round(averge_quiz_socre,2)
-    averge_course_complition = (Enrollment.objects.all().count() / Enrollment.objects.filter(completed=True).count()) * 100
+    total_enrollmets = Enrollment.objects.all().count()
+    completed_courses = Enrollment.objects.filter(completed=True).count()
+    averge_course_complition = (completed_courses  / total_enrollmets) * 100 if total_enrollmets != 0 else 0
     averge_course_complition = round(averge_course_complition,2)
     registeration_per_month = (Student.objects
                               .annotate(month=ExtractMonth("created_at"))
