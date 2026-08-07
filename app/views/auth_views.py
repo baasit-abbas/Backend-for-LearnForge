@@ -21,12 +21,22 @@ def getProfile(request):
         "role":request.user.role
         })
 
-@api_view(['GET'])
+@api_view(['GET','POST'])
 @permission_classes([Has_role(User.Role.ADMIN)])
 def users(request):
-    user = User.objects.all()
-    serializer = UserSerializer(user,many=True)
-    return Response(serializer.data)
+    if request.method == 'GET':
+        user = User.objects.all()
+        serializer = UserSerializer(user,many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serizlier = UserSerializer(data={
+            **request.data,
+            "role":User.Role.ADMIN
+            })
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serizlier.data)
+
 
 class user(APIView):
     permission_classes = [Has_role(User.Role.ADMIN)]
