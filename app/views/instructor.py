@@ -28,7 +28,7 @@ def instructors(request):
                 })
         return Response(instructor.errors,status=400)
 
-@api_view(['GET','PATCH'])
+@api_view(['GET','PATCH','DELETE'])
 @permission_classes([IsAuthenticated])
 def instructor(request,id):
 
@@ -47,7 +47,7 @@ def instructor(request,id):
             "courses":ser.data
         }
         return Response(data)
-    if request.method == 'PATCH': 
+    elif request.method == 'PATCH': 
         if request.user.role != User.Role.ADMIN:
             raise PermissionDenied()
         serailizer = InstructorSerializer(
@@ -59,6 +59,10 @@ def instructor(request,id):
             serailizer.save()
             return Response(serailizer.data)
         return Response(serailizer.errors,status=400)
+    elif request.method == 'DELETE':
+        user = instructor.user
+        user.delete()
+        return Response({"message":"Instrcutor Deleted Successfully","status":200})
         
         
 

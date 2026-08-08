@@ -17,7 +17,7 @@ class Instructor(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE,related_name="instructor")
     specialization = models.CharField(max_length=50)
     experience_years = models.IntegerField()
-    phone= models.CharField()
+    phone = models.CharField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

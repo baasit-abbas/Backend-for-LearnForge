@@ -40,7 +40,7 @@ def students(request):
                 "date_of_birth":student.date_of_birth
         })
 
-@api_view(['PATCH','GET'])
+@api_view(['PATCH','GET','DELETE'])
 @permission_classes([IsAuthenticated])
 def student(request,id):
     student = get_object_or_404(Student,id=id)
@@ -75,6 +75,10 @@ def student(request,id):
             "courses":return_data
         }
         return Response(data)    
+    elif request.method == 'DELETE':
+        user = student.user
+        user.delete()
+        return Response({"Student Deleted Successfully"})
 
 @api_view(['POST'])
 @permission_classes([Has_role(User.Role.STUDENT)])

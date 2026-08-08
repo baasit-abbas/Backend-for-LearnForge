@@ -29,13 +29,13 @@ def users(request):
         serializer = UserSerializer(user,many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
-        serizlier = UserSerializer(data={
-            **request.data,
-            "role":User.Role.ADMIN
-            })
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serizlier.data)
+        user = User.objects.create_user(
+            username = request.data['username'],
+            email = request.data['email'],
+            password = request.data['password'],
+            role = User.Role.ADMIN
+            )
+        return Response(UserSerializer(user).data)
 
 
 class user(APIView):
