@@ -9,6 +9,7 @@ from ..serializers.course_serailzier import CourseSerializer
 from ..serializers.enrollment_serialier import EnrollmentSerialzier
 from ..serializers.user_serailizer import UserSerializer
 from rest_framework.exceptions import PermissionDenied
+from django.db import transaction
 
 
 @api_view(['GET','POST'])
@@ -42,20 +43,28 @@ def students(request):
 
 @api_view(['PATCH','GET','DELETE'])
 @permission_classes([IsAuthenticated])
+@transaction.atomic
 def student(request,id):
     student = get_object_or_404(Student,id=id)
     if request.method == 'PATCH':
         if request.user.role != User.Role.ADMIN:
             raise PermissionDenied()
+        userSerializer = UserSerializer(
+            student.user,
+            data=request.data,
+            partial=True
+        )
+        userSerializer.is_valid(raise_exception=True)
+        userSerializer.save()
+
         serializer = StudentSerializer(
                 student,
                 data=request.data,
                 partial=True
             )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors,status=400)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
     elif request.method == 'GET':
         if request.user.role not in [User.Role.STUDENT,User.Role.ADMIN]:
             raise PermissionDenied()
@@ -78,7 +87,7 @@ def student(request,id):
     elif request.method == 'DELETE':
         user = student.user
         user.delete()
-        return Response({"Student Deleted Successfully"})
+        return Response({"message":"Student Deleted Successfully","status":200})
 
 @api_view(['POST'])
 @permission_classes([Has_role(User.Role.STUDENT)])

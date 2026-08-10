@@ -17,16 +17,15 @@ def instructors(request):
         return Response(serializer.data)
     elif request.method == 'POST':
         instructor = AddInstructorSerializer(data=request.data)
-        if instructor.is_valid():
-            data = instructor.save()
-            return Response({"id":data.user.id,
+        instructor.is_valid(raise_exception=True)
+        data = instructor.save()
+        return Response({"id":data.user.id,
                 "instructor_id":data.id,      
                 "username":data.user.username,
                 "specialization":data.specialization,
                 "experience_years":data.experience_years,
                 "phone":data.phone
-                })
-        return Response(instructor.errors,status=400)
+            })
 
 @api_view(['GET','PATCH','DELETE'])
 @permission_classes([IsAuthenticated])
