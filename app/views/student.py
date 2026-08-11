@@ -71,15 +71,18 @@ def student(request,id):
         if request.user.role == User.Role.STUDENT and request.user.student.id != id:
             raise PermissionDenied()
         serializer = StudentSerializer(student)
-        courses = student.courses.all()
-        courseSerializer = CourseSerializer(courses,many=True)
+        user = student.user
+        userSerializer = UserSerializer(user)
         return_data = []
 
-        for course in courseSerializer.data:
-            enrollment = get_object_or_404(Enrollment,student=id,course=course["id"])
-            return_data.append({**course,"progress":enrollment.progress})
+        for course in student.courses.all():
+            instructor = course.instructor.user.username
+            enrollment = get_object_or_404(Enrollment,student=id,course=course.id)
+            serializer = CourseSerializer(course)
+            return_data.append({**serializer.data,"progress":enrollment.progress,"instructor":instructor})
 
         data = {
+            **userSerializer.data,
             **serializer.data,
             "courses":return_data
         }

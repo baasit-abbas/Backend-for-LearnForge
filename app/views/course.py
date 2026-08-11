@@ -68,10 +68,9 @@ def course(request,id):
             data = request.data,
             partial = True
         )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors,status=400)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
     elif request.method == 'DELETE':
         if request.user.role == User.Role.STUDENT:
             raise PermissionDenied()
