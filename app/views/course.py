@@ -10,7 +10,8 @@ from ..serializers.enrollment_serialier import EnrollmentSerialzier
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from ..ai.utils.global_utils import createOrGetChroma , delete_course , get_embeddings
+from ..ai.utils.global_utils import createOrGetChroma , delete_course
+from django.db.models import Sum
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
@@ -19,9 +20,20 @@ def courses(request):
         if request.user.role not in  [User.Role.ADMIN , User.Role.STUDENT]:
             raise PermissionDenied()
         courses = Course.objects.all()
-        serializer = CourseSerializer(courses,many=True)
+        return_data = []
+        for course in courses:
+            instructor = course.instructor.user.username
+            total_students = Enrollment.objects.filter(course=course.id).count()
+            total_progress = Enrollment.objects.filter(course=course.id).aggregate(total=Sum("progress"))['total']
+            average_progress = round((total_progress / total_students) * 100,2) if total_students != 0 else 0
+            serializer = CourseSerializer(course)
+            return_data.append({
+                **serializer.data,
+                "instructor":instructor,
+                "average_progress":average_progress
+            })
         
-        return Response(serializer.data)
+        return Response(return_data)
     elif request.method == 'POST':
         if request.user.role != User.Role.INSTRUCTOR:
             raise PermissionDenied()
@@ -50,14 +62,21 @@ def course(request,id):
         docSerializer = DocumentSerilizer(docs,many=True)
         videos = course.videos.all()
         videoSerialzier = VideoSerilizer(videos,many=True)
-        students = course.students.all()
-        studentSerailzier = StudentSerializer(students,many=True)
+        students = []
+        for student in course.students.all():
+            students.append({
+                "id":student.id,
+                "username":student.user.username,
+                "email":student.user.email,
+                "last_login":student.user.last_login,
+                "date_of_birth":student.date_of_birth
+            })
         data = {
             **serializer.data,
             "instructor":inst,
             "docs":docSerializer.data,
             "videos":videoSerialzier.data,
-            "students":studentSerailzier.data
+            "students":students
         }
         return Response(data)
     elif request.method == 'PATCH':
