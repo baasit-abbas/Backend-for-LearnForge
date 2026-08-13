@@ -35,11 +35,16 @@ def courses(request):
         
         return Response(return_data)
     elif request.method == 'POST':
-        if request.user.role != User.Role.INSTRUCTOR:
+        if request.user.role == User.Role.ADMIN:
+            instructor = request.data['id']
+            request.data.pop('id')
+        elif request.user.role == User.Role.INSTRUCTOR:
+            instructor = request.user.instructor.id
+        else:
             raise PermissionDenied()
         data = {
             **request.data,
-            "instructor":request.user.instructor.id
+            "instructor":instructor
         }
         serializer = CourseSerializer(data=data)
         if serializer.is_valid():

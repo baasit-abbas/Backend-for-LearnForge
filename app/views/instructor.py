@@ -13,8 +13,19 @@ from rest_framework.exceptions import PermissionDenied
 def instructors(request):
     if request.method == 'GET':
         instrctors = Instructor.objects.all()
-        serializer = InstructorSerializer(instrctors,many=True)
-        return Response(serializer.data)
+        return_data = []
+        for instructor in instrctors:
+            username = instructor.user.username
+            email = instructor.user.email
+            last_login = instructor.user.last_login
+            serializer = InstructorSerializer(instructor)
+            return_data.append({
+                **serializer.data,
+                "username":username,
+                "email":email,
+                "last_login":last_login
+            })
+        return Response(return_data)
     elif request.method == 'POST':
         instructor = AddInstructorSerializer(data=request.data)
         instructor.is_valid(raise_exception=True)

@@ -22,8 +22,17 @@ def docs(request):
         if request.user.role != User.Role.ADMIN:
             raise PermissionDenied()
         docs = Documents.objects.all()
-        serailzier = DocumentSerilizer(docs,many=True)
-        return Response(serailzier.data)
+        return_data = []
+        for doc in docs:
+            course_name = doc.course.title
+            instructor = doc.createdBy.user.username
+            serailzier = DocumentSerilizer(doc)
+            return_data.append({
+                **serailzier.data,
+                "instructor":instructor,
+                "course_name":course_name
+            })
+        return Response(return_data)
     elif request.method == 'POST':
         if request.user.role not in [User.Role.ADMIN,User.Role.INSTRUCTOR]:
             raise PermissionDenied()
