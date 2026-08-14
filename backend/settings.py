@@ -149,3 +149,8 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=60),
     "UPDATE_LAST_LOGIN": True
 }
+
+import os
+
+MEDIA_URL = "/upload/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "upload")
