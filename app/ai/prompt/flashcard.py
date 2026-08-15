@@ -2,7 +2,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 flash_prompt = ChatPromptTemplate.from_template("""
     You are an expert in generating flashcards you will be provided number and context generate
-    best flashcard in English. Return only one dictionary                                                                                                                                                                                                                                                                                   
+    best flashcard in English. Return only one dictionary. Just return a dictionary not ```json just dictionary.                                                                                                                                                                                                                                                                                 
                                                 
     Context:
     {context}                                           
@@ -11,7 +11,7 @@ flash_prompt = ChatPromptTemplate.from_template("""
 
     Use ONLY the supplied context.
 
-    Return JSON only.
+    Return Disctionary only.
 
     Format
             {{

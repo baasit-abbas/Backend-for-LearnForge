@@ -38,11 +38,10 @@ def docs(request):
             raise PermissionDenied()
         file = request.FILES.get("file")
         path = default_storage.save(
-            f"upload/docs/{file.name}",
+            f"docs/{file.name}",
             file
         )
-        fileUrl = path
-        # fileUrl = os.path.join(settings.MEDIA_ROOT,path)
+        fileUrl = default_storage.path(path)
         fileType = file.name.split('.')[1]
         course_id = request.data["course"]
         course = get_object_or_404(Course,id=course_id)
@@ -50,7 +49,7 @@ def docs(request):
             raise PermissionDenied()
         data = {
             "title":request.data['title'],
-            "fileUrl":fileUrl,
+            "fileUrl":path,
             "fileType":fileType,
             "course":course_id,
             "createdBy":course.instructor.id
