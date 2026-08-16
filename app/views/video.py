@@ -16,30 +16,36 @@ import os
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
+@transaction.atomic
 def videos(request):
     if request.method == 'GET':
         if request.user.role != User.Role.ADMIN:
             raise PermissionDenied()
-        video = Video.objects.all()
-        serilzier = VideoSerilizer(video,many=True)
-        return Response(serilzier.data)
+        videos = Video.objects.all()
+        return_data = []
+        for video in videos:
+            course_name = video.course.title
+            instructor = video.course.instructor.user.username
+            serilzier = VideoSerilizer(video)
+            return_data.append({
+                "course_name":course_name,
+                "instructor":instructor,
+                **serilzier.data
+            })
+        return Response(return_data)
     elif request.method == 'POST':
         if request.user.role not in [User.Role.ADMIN,User.Role.INSTRUCTOR]:
             raise PermissionDenied()
         video = request.FILES.get('video')
         path = default_storage.save(
-            f"upload/video/{video.name}",
+            f"video/{video.name}",
             video
         )
-        videoUrl = path
-        # videoUrl = os.path.join(settings.MEDIA_ROOT,path)
         thumbnail = request.FILES.get('image')
         thumbnailPath = default_storage.save(
-            f"upload/images/{thumbnail.name}",
+            f"images/{thumbnail.name}",
             thumbnail
         )
-        thumbnailUrl = thumbnailPath
-        # thumbnailUrl = os.path.join(settings.MEDIA_ROOT,thumbnailPath)
         title = request.data['title']
         course_id = request.data["course"]
         course = get_object_or_404(Course,id=course_id)
@@ -47,14 +53,15 @@ def videos(request):
             raise PermissionDenied()
         data = {
             "title":title,
-            "videoUrl":videoUrl,
-            "thumbnailUrl":thumbnailUrl,
+            "videoUrl":path,
+            "thumbnailUrl":thumbnailPath,
             "course":course_id,
             "createdBy":course.instructor.id
         }
         serailzier = VideoSerilizer(data=data)
         serailzier.is_valid(raise_exception=True)
         serailzier.save()
+        videoUrl = default_storage.path(path)
         doc = read_video(videoUrl)
         chunks = divide_chunks([doc])
         vector_db = createOrGetChroma()
